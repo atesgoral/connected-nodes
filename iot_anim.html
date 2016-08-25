@@ -59,7 +59,7 @@ var NODE_SILENT_DURATION = 40000;
 var WAVE_MAX_DURATION = 2500;
 var WAVE_MAX_DISTANCE = 30;
 
-window.onload = () => {
+window.onload = function () {
   var canvas = document.getElementsByTagName('canvas')[0];
 
   canvas.width = canvas.offsetWidth;
@@ -72,7 +72,7 @@ window.onload = () => {
   function process() {
     var now = Date.now();
 
-    nodes.forEach(node => {
+    nodes.forEach(function (node) {
       node.x += Math.cos(node.a) * node.v;
       node.y += Math.sin(node.a) * node.v;
 
@@ -109,7 +109,7 @@ window.onload = () => {
         }
         break;
       case 'EMITTING':
-        node.waves = node.waves.filter(wave => {
+        node.waves = node.waves.filter(function (wave) {
           return now - wave.delay - wave.t <= WAVE_MAX_DURATION
         });
 
@@ -127,7 +127,7 @@ window.onload = () => {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    nodes.forEach(node => {
+    nodes.forEach(function (node) {
       if (node.state === 'HIDING') {
         return;
       }
@@ -147,7 +147,7 @@ window.onload = () => {
       );
       ctx.fill();
 
-      node.waves.forEach(wave => {
+      node.waves.forEach(function (wave) {
         var elapsed = now - wave.delay - wave.t;
 
         if (elapsed < 0) {
