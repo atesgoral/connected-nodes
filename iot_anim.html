@@ -6,7 +6,6 @@ body {
   margin: 0;
   padding: 0;
   background: -webkit-gradient(linear, right top, left bottom, from(#3bbdec), to(#00aae7));
-  /*background: black;*/
 }
 canvas {
   width: 100%;
@@ -29,16 +28,13 @@ canvas {
   right: 0;
   left: 0;
   background: url(Header.png) 50% 50% no-repeat;
-  /*background: transparent;*/
   background-size: 40%;
 }
 </style>
 <canvas>
 </canvas>
-<!--div id="text"><strong>Accelerate</strong> your IoT success.</div-->
 <div id="overlay"></div>
 <script>
-//var BACKGROUND_COLOR = '#00aae7';
 var NODE_COLOR = '#fff';
 var WAVE_COLOR = '#fff';
 
@@ -70,8 +66,6 @@ window.onload = () => {
   canvas.height = canvas.offsetHeight;
 
   var ctx = canvas.getContext('2d');
-
-  // ctx.fillStyle = BACKGROUND_COLOR;
 
   var nodes = [];
 
@@ -131,8 +125,6 @@ window.onload = () => {
   function paint() {
     var now = Date.now();
 
-    //ctx.fillStyle = BACKGROUND_COLOR;
-    //ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     nodes.forEach(node => {
