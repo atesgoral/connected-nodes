@@ -21,27 +21,44 @@ canvas {
   font-family: Helvetica, sans-serif;
   font-size: 48pt;
 }
+#overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  background: url(Header.png) 50% 50% no-repeat;
+  background-size: 40%;
+}
 </style>
 <canvas>
 </canvas>
-<div id="text"><strong>Accelerate</strong> your IoT success.</div>
+<!--div id="text"><strong>Accelerate</strong> your IoT success.</div-->
+<div id="overlay"></div>
 <script>
 var BACKGROUND_COLOR = '#00aae7';
-var NODE_COLOR = '#79d1f0';
-var WAVE_COLOR = '#fff';
+var NODE_COLOR = '#3cbdeb';
+var WAVE_COLOR = '#78d2f2';
 
 var SPAWN_DURATION = 500;
 var SPAWN_PROBABILITIES = [{
-  d: 4000,
+  d: 3000,
   p: 0.03
 }, {
-  d: 4000,
+  d: 1000,
+  p: 0.5
+}, {
+  d: 1000,
   p: 1
 }];
+var SPAWN_INIT_MAX_RADIUS = 0.01;
+var SPAWN_MAX_RADIUS_VEL = 0.01;
 
-var NODE_RADIUS = 4;
-var NODE_VELOCITY = 0.1;
-var WAVE_MAX_DURATION = 5000;
+var NODE_RADIUS = 5;
+var NODE_VELOCITY = 0.075;
+var NODE_SILENT_DURATION = 6000;
+
+var WAVE_MAX_DURATION = 2500;
 var WAVE_MAX_DISTANCE = 14;
 
 window.onload = () => {
@@ -57,6 +74,7 @@ window.onload = () => {
   var nodes = [];
   var spawnProbabilityStart = Date.now();
   var spawnProbabilities = SPAWN_PROBABILITIES;
+  var spawnMaxRadius = SPAWN_INIT_MAX_RADIUS;
 
   function process() {
     var now = Date.now();
@@ -64,11 +82,16 @@ window.onload = () => {
     if (spawnProbabilities.length) {
       if (Math.random() < spawnProbabilities[0].p) {
         spawnNode();
+        spawnNode();
       }
 
       if (now - spawnProbabilityStart >= spawnProbabilities[0].d) {
         spawnProbabilities.shift();
         spawnProbabilityStart = now;
+      }
+
+      if (spawnMaxRadius < 1) {
+        spawnMaxRadius = Math.min(1, spawnMaxRadius + SPAWN_MAX_RADIUS_VEL);
       }
     }
 
@@ -82,20 +105,20 @@ window.onload = () => {
       case 'SPAWNING':
         if (elapsed >= SPAWN_DURATION) {
           node.state = 'SILENT';
-          node.t = now;
+          node.t = now - Math.random() * NODE_SILENT_DURATION;
         }
         break;
       case 'SILENT':
-        if (elapsed >= 1000) {
+        if (elapsed >= NODE_SILENT_DURATION) {
           node.waves.push({
             t: now,
             delay: 0
-          }, {
-            t: now,
-            delay: WAVE_MAX_DURATION / 3
-          }, {
-            t: now,
-            delay: WAVE_MAX_DURATION / 3 * 2
+          // }, {
+          //   t: now,
+          //   delay: WAVE_MAX_DURATION / 3
+          // }, {
+          //   t: now,
+          //   delay: WAVE_MAX_DURATION / 3 * 2
           });
           node.state = 'EMITTING';
           node.t = now;
@@ -170,9 +193,12 @@ window.onload = () => {
   }
 
   function spawnNode() {
+    var a = Math.random() * Math.PI * 2;
+    var r = spawnMaxRadius * Math.random();
+
     nodes.push({
-      x: Math.random() * canvas.width - canvas.width / 2,
-      y: Math.random() * canvas.height - canvas.height / 2,
+      x: Math.cos(a) * r * canvas.width / 2,
+      y: Math.sin(a) * r * canvas.height / 2,
       a: 2 * Math.PI * Math.random(),
       v: NODE_VELOCITY,
       r: NODE_RADIUS,
