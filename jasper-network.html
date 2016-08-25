@@ -30,12 +30,14 @@ var BACKGROUND_COLOR = '#00aae7';
 var NODE_COLOR = '#79d1f0';
 var WAVE_COLOR = '#fff';
 
-var SPAWN_INTERVAL = 1000;
-var SPAWN_INTERVAL_VEL = -100;
-var SPAWN_INTERVAL_ACC = -20;
-var SPAWN_INTERVAL_MAX_VEL = 400;
-var SPAWN_RUN_TIME = 8000;
 var SPAWN_DURATION = 500;
+var SPAWN_PROBABILITIES = [{
+  d: 4000,
+  p: 0.03
+}, {
+  d: 4000,
+  p: 1
+}];
 
 var NODE_RADIUS = 4;
 var NODE_VELOCITY = 0.1;
@@ -53,9 +55,22 @@ window.onload = () => {
   ctx.fillStyle = BACKGROUND_COLOR;
 
   var nodes = [];
+  var spawnProbabilityStart = Date.now();
+  var spawnProbabilities = SPAWN_PROBABILITIES;
 
   function process() {
     var now = Date.now();
+
+    if (spawnProbabilities.length) {
+      if (Math.random() < spawnProbabilities[0].p) {
+        spawnNode();
+      }
+
+      if (now - spawnProbabilityStart >= spawnProbabilities[0].d) {
+        spawnProbabilities.shift();
+        spawnProbabilityStart = now;
+      }
+    }
 
     nodes.forEach(node => {
       node.x += Math.cos(node.a) * node.v;
@@ -165,25 +180,7 @@ window.onload = () => {
       waves: [],
       state: 'SPAWNING'
     });
-
-    SPAWN_INTERVAL = Math.max(10, SPAWN_INTERVAL + SPAWN_INTERVAL_VEL);
-    SPAWN_INTERVAL_VEL += SPAWN_INTERVAL_ACC;
-
-    if (SPAWN_INTERVAL_VEL <= -SPAWN_INTERVAL_MAX_VEL) {
-      SPAWN_INTERVAL_ACC *= -1;
-    }
-
-    if (SPAWN_INTERVAL_VEL >= SPAWN_INTERVAL_MAX_VEL) {
-      console.log('All done!');
-      return;
-    }
-
-    console.log(SPAWN_INTERVAL, SPAWN_INTERVAL_VEL, SPAWN_INTERVAL_ACC);
-
-    setTimeout(spawnNode, SPAWN_INTERVAL);
   }
-
-  spawnNode();
 
   tick();
 
