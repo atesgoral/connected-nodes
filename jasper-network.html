@@ -1,0 +1,198 @@
+<style>
+html, body {
+  heiht: 100%;
+}
+body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+}
+canvas {
+  width: 100%;
+  height: 100%;
+}
+#text {
+  position: absolute;
+  top: 50%;
+  margin-top: -24pt;
+  width: 100%;
+  text-align: center;
+  color: #fff;
+  font-family: Helvetica, sans-serif;
+  font-size: 48pt;
+}
+</style>
+<canvas>
+</canvas>
+<div id="text"><strong>Accelerate</strong> your IoT success.</div>
+<script>
+var BACKGROUND_COLOR = '#00aae7';
+var NODE_COLOR = '#79d1f0';
+var WAVE_COLOR = '#fff';
+
+var SPAWN_INTERVAL = 1000;
+var SPAWN_INTERVAL_VEL = -100;
+var SPAWN_INTERVAL_ACC = -20;
+var SPAWN_INTERVAL_MAX_VEL = 400;
+var SPAWN_RUN_TIME = 8000;
+var SPAWN_DURATION = 500;
+
+var NODE_RADIUS = 4;
+var NODE_VELOCITY = 0.1;
+var WAVE_MAX_DURATION = 5000;
+var WAVE_MAX_DISTANCE = 14;
+
+window.onload = () => {
+  var canvas = document.getElementsByTagName('canvas')[0];
+
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+
+  var ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = BACKGROUND_COLOR;
+
+  var nodes = [];
+
+  function process() {
+    var now = Date.now();
+
+    nodes.forEach(node => {
+      node.x += Math.cos(node.a) * node.v;
+      node.y += Math.sin(node.a) * node.v;
+
+      var elapsed = now - node.t;
+
+      switch (node.state) {
+      case 'SPAWNING':
+        if (elapsed >= SPAWN_DURATION) {
+          node.state = 'SILENT';
+          node.t = now;
+        }
+        break;
+      case 'SILENT':
+        if (elapsed >= 1000) {
+          node.waves.push({
+            t: now,
+            delay: 0
+          }, {
+            t: now,
+            delay: WAVE_MAX_DURATION / 3
+          }, {
+            t: now,
+            delay: WAVE_MAX_DURATION / 3 * 2
+          });
+          node.state = 'EMITTING';
+          node.t = now;
+        }
+        break;
+      case 'EMITTING':
+        node.waves = node.waves.filter(wave => {
+          return now - wave.delay - wave.t <= WAVE_MAX_DURATION
+        });
+
+        if (!node.waves.length) {
+          node.state = 'SILENT';
+          node.t = now;
+        }
+        break;
+      }
+    });
+  }
+
+  function paint() {
+    var now = Date.now();
+
+    ctx.fillStyle = BACKGROUND_COLOR;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    nodes.forEach(node => {
+      ctx.globalAlpha = node.state === 'SPAWNING'
+        ? Math.max(0, now - node.t) / SPAWN_DURATION
+        : 1;
+
+      ctx.fillStyle = NODE_COLOR;
+      ctx.beginPath();
+      ctx.arc(
+        canvas.width / 2 + node.x,
+        canvas.height / 2 + node.y,
+        node.r,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+
+      node.waves.forEach(wave => {
+        var elapsed = now - wave.delay - wave.t;
+
+        if (elapsed < 0) {
+          return;
+        }
+
+        var n = Math.max(0, WAVE_MAX_DURATION - elapsed) / WAVE_MAX_DURATION;
+
+        ctx.globalAlpha = n;
+        ctx.strokeStyle = WAVE_COLOR;
+        ctx.beginPath();
+        ctx.arc(
+          canvas.width / 2 + node.x,
+          canvas.height / 2 + node.y,
+          node.r + (1 - n) * WAVE_MAX_DISTANCE,
+          0,
+          Math.PI * 2
+        );
+        ctx.stroke();
+      });
+
+      ctx.globalAlpha = 1;
+    });
+  }
+
+  function tick() {
+    paint();
+    process();
+    setTimeout(tick, 1000 / 50);
+  }
+
+  function spawnNode() {
+    nodes.push({
+      x: Math.random() * canvas.width - canvas.width / 2,
+      y: Math.random() * canvas.height - canvas.height / 2,
+      a: 2 * Math.PI * Math.random(),
+      v: NODE_VELOCITY,
+      r: NODE_RADIUS,
+      t: Date.now(),
+      waves: [],
+      state: 'SPAWNING'
+    });
+
+    SPAWN_INTERVAL = Math.max(10, SPAWN_INTERVAL + SPAWN_INTERVAL_VEL);
+    SPAWN_INTERVAL_VEL += SPAWN_INTERVAL_ACC;
+
+    if (SPAWN_INTERVAL_VEL <= -SPAWN_INTERVAL_MAX_VEL) {
+      SPAWN_INTERVAL_ACC *= -1;
+    }
+
+    if (SPAWN_INTERVAL_VEL >= SPAWN_INTERVAL_MAX_VEL) {
+      console.log('All done!');
+      return;
+    }
+
+    console.log(SPAWN_INTERVAL, SPAWN_INTERVAL_VEL, SPAWN_INTERVAL_ACC);
+
+    setTimeout(spawnNode, SPAWN_INTERVAL);
+  }
+
+  spawnNode();
+
+  tick();
+
+  // for (var i = 0; i < 2; i += 0.01) {
+  //   var x = i - 1;
+  //   var y = - x * x * x;
+
+  //   ctx.fillStyle = '#fff';
+  //   ctx.fillRect(canvas.width / 2 + x * 800, canvas.height /2 + y * 800, 2, 2);
+  // }
+};
+</script>
