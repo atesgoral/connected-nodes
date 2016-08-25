@@ -39,8 +39,8 @@ canvas {
 <div id="overlay"></div>
 <script>
 //var BACKGROUND_COLOR = '#00aae7';
-var NODE_COLOR = '#3cbdeb';
-var WAVE_COLOR = '#78d2f2';
+var NODE_COLOR = '#fff';
+var WAVE_COLOR = '#fff';
 
 var SPAWN_DURATION = 500;
 var SPAWN_STEPS = [{
@@ -56,12 +56,12 @@ var SPAWN_STEPS = [{
   r: 1,
   n: 100
 }];
-var NODE_RADIUS = 5;
+var NODE_RADIUS = 2;
 var NODE_VELOCITY = 0.075;
-var NODE_SILENT_DURATION = 6000;
+var NODE_SILENT_DURATION = 40000;
 
 var WAVE_MAX_DURATION = 2500;
-var WAVE_MAX_DISTANCE = 14;
+var WAVE_MAX_DISTANCE = 30;
 
 window.onload = () => {
   var canvas = document.getElementsByTagName('canvas')[0];
@@ -102,13 +102,14 @@ window.onload = () => {
           node.waves.push({
             t: now,
             delay: 0
-          // }, {
-          //   t: now,
-          //   delay: WAVE_MAX_DURATION / 3
-          // }, {
-          //   t: now,
-          //   delay: WAVE_MAX_DURATION / 3 * 2
+          }, {
+            t: now,
+            delay: WAVE_MAX_DURATION / 3
+          }, {
+            t: now,
+            delay: WAVE_MAX_DURATION / 3 * 2
           });
+          node.waves.length = Math.floor(Math.random() * 3);
           node.state = 'EMITTING';
           node.t = now;
         }
