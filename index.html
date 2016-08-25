@@ -103,7 +103,7 @@ window.onload = function () {
             t: now,
             delay: WAVE_MAX_DURATION / 3 * 2
           });
-          node.waves.length = Math.floor(Math.random() * 3);
+          node.waves.length = Math.floor(Math.random() * 3) + 1;
           node.state = 'EMITTING';
           node.t = now;
         }
