@@ -133,8 +133,9 @@ window.onload = function () {
           var dy = node.y - otherNode.y;
           var d = Math.sqrt(dx * dx + dy * dy);
 
-          return d < 50 && d > 20;
-        });
+          return d < 200 && d > 50;
+        })
+        .slice(0, 2);
     });
   }
 
