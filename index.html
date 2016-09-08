@@ -54,6 +54,8 @@ var SPAWN_STEPS = [{
   r: 1,
   n: 100
 }];
+var CONNECT_DURATION = 2000;
+
 var NODE_RADIUS = 2;
 var NODE_VELOCITY = 0.075;
 var NODE_SILENT_DURATION = 40000;
@@ -89,6 +91,34 @@ window.onload = function () {
         break;
       case 'SPAWNING':
         if (elapsed >= SPAWN_DURATION) {
+          var closest = nodes
+            .map(function (otherNode) {
+              var dx = node.x - otherNode.x;
+              var dy = node.y - otherNode.y;
+
+              return {
+                node: otherNode,
+                d: Math.sqrt(dx * dx + dy * dy)
+              };
+            })
+            .filter(function (measurement) {
+              return measurement.d > 0;
+            })
+            .sort(function (a, b) {
+              return b.d - a.d;
+            })
+            .pop();
+
+          if (closest) {
+            node.connectedNode = closest.node;
+          }
+
+          node.state = 'CONNECTING';
+          node.t = now;
+        }
+        break;
+      case 'CONNECTING':
+        if (elapsed >= CONNECT_DURATION) {
           node.state = 'SILENT';
           node.t = now - Math.random() * NODE_SILENT_DURATION;
         }
@@ -122,20 +152,20 @@ window.onload = function () {
         break;
       }
 
-      node.connectedNodes = nodes
-        .slice(idx + 1)
-        .filter(function (otherNode) {
-          if (otherNode.state !== 'SILENT') {
-            return;
-          }
+      // node.connectedNodes = nodes
+      //   .slice(idx + 1)
+      //   .filter(function (otherNode) {
+      //     if (otherNode.state !== 'SILENT') {
+      //       return;
+      //     }
 
-          var dx = node.x - otherNode.x;
-          var dy = node.y - otherNode.y;
-          var d = Math.sqrt(dx * dx + dy * dy);
+      //     var dx = node.x - otherNode.x;
+      //     var dy = node.y - otherNode.y;
+      //     var d = Math.sqrt(dx * dx + dy * dy);
 
-          return d < 200 && d > 50;
-        })
-        .slice(0, 2);
+      //     return d < 200 && d > 50;
+      //   })
+      //   .slice(0, 2);
     });
   }
 
@@ -175,9 +205,9 @@ window.onload = function () {
         return;
       }
 
-      ctx.globalAlpha = node.state === 'SPAWNING'
-        ? Math.max(0, now - node.t) / SPAWN_DURATION
-        : 1;
+      if (node.state === 'SPAWNING') {
+        ctx.globalAlpha = Math.max(0, now - node.t) / SPAWN_DURATION;
+      }
 
       ctx.fillStyle = NODE_COLOR;
       ctx.beginPath();
@@ -190,13 +220,29 @@ window.onload = function () {
       );
       ctx.fill();
 
-      node.connectedNodes.forEach(function (otherNode) {
+      ctx.globalAlpha = 1;
+
+      if (node.connectedNode) {
+        if (node.state === 'CONNECTING') {
+          ctx.globalAlpha = Math.max(0, now - node.t) / CONNECT_DURATION;
+        }
+
         ctx.strokeStyle = CONNECTOR_COLOR;
         ctx.beginPath();
         ctx.moveTo(canvas.width / 2 + node.x, canvas.height / 2 + node.y);
-        ctx.lineTo(canvas.width / 2 + otherNode.x, canvas.height / 2 + otherNode.y);
+        ctx.lineTo(canvas.width / 2 + node.connectedNode.x, canvas.height / 2 + node.connectedNode.y);
         ctx.stroke();
-      });
+
+        ctx.globalAlpha = 1;
+      }
+
+      // node.connectedNodes.forEach(function (otherNode) {
+      //   ctx.strokeStyle = CONNECTOR_COLOR;
+      //   ctx.beginPath();
+      //   ctx.moveTo(canvas.width / 2 + node.x, canvas.height / 2 + node.y);
+      //   ctx.lineTo(canvas.width / 2 + otherNode.x, canvas.height / 2 + otherNode.y);
+      //   ctx.stroke();
+      // });
 
       node.waves.forEach(function (wave) {
         var elapsed = now - wave.delay - wave.t;
