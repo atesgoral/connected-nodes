@@ -37,6 +37,7 @@ canvas {
 <script>
 var NODE_COLOR = '#fff';
 var WAVE_COLOR = '#fff';
+var CONNECTOR_COLOR = '#fff';
 
 var SPAWN_DURATION = 500;
 var SPAWN_STEPS = [{
@@ -72,7 +73,7 @@ window.onload = function () {
   function process() {
     var now = Date.now();
 
-    nodes.forEach(function (node) {
+    nodes.forEach(function (node, idx) {
       node.x += Math.cos(node.a) * node.v;
       node.y += Math.sin(node.a) * node.v;
 
@@ -119,6 +120,20 @@ window.onload = function () {
         }
         break;
       }
+
+      node.connectedNodes = nodes
+        .slice(idx + 1)
+        .filter(function (otherNode) {
+          if (otherNode.state !== 'SILENT') {
+            return;
+          }
+
+          var dx = node.x - otherNode.x;
+          var dy = node.y - otherNode.y;
+          var d = Math.sqrt(dx * dx + dy * dy);
+
+          return d < 100;
+        });
     });
   }
 
@@ -146,6 +161,14 @@ window.onload = function () {
         Math.PI * 2
       );
       ctx.fill();
+
+      node.connectedNodes.forEach(function (otherNode) {
+        ctx.strokeStyle = CONNECTOR_COLOR;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2 + node.x, canvas.height / 2 + node.y);
+        ctx.lineTo(canvas.width / 2 + otherNode.x, canvas.height / 2 + otherNode.y);
+        ctx.stroke();
+      });
 
       node.waves.forEach(function (wave) {
         var elapsed = now - wave.delay - wave.t;
@@ -182,8 +205,7 @@ window.onload = function () {
   function spawnNode(spawnMinRadius, spawnMaxRadius, maxHideDuration) {
     var a = Math.random() * Math.PI * 2;
     var r = (spawnMaxRadius - spawnMinRadius) * Math.random() + spawnMinRadius;
-
-    nodes.push({
+    var newNode = {
       x: Math.cos(a) * r * canvas.width / 2,
       y: Math.sin(a) * r * canvas.height / 2,
       a: 2 * Math.PI * Math.random(),
@@ -193,7 +215,9 @@ window.onload = function () {
       waves: [],
       state: 'HIDING',
       hideDuration: maxHideDuration * Math.random()
-    });
+    };
+
+    nodes.push(newNode);
   }
 
   var prevMinRadius = 0;
