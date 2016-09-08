@@ -34,6 +34,7 @@ canvas {
 <canvas>
 </canvas>
 <div id="overlay"></div>
+<script src="https://cdn.rawgit.com/Bathlamos/delaunay-triangulation/master/delaunay.js"></script>
 <script>
 var NODE_COLOR = '#fff';
 var WAVE_COLOR = '#fff';
@@ -121,19 +122,21 @@ window.onload = function () {
         break;
       }
 
-      node.connectedNodes = nodes
-        .slice(idx + 1)
-        .filter(function (otherNode) {
-          if (otherNode.state !== 'SILENT') {
-            return;
-          }
+      // node.connectedNodes = nodes
+      //   .slice(idx + 1)
+      //   .filter(function (otherNode) {
+      //     if (otherNode.state !== 'SILENT') {
+      //       return;
+      //     }
 
-          var dx = node.x - otherNode.x;
-          var dy = node.y - otherNode.y;
-          var d = Math.sqrt(dx * dx + dy * dy);
+      //     var dx = node.x - otherNode.x;
+      //     var dy = node.y - otherNode.y;
+      //     var d = Math.sqrt(dx * dx + dy * dy);
 
-          return d < 100;
-        });
+      //     return d < 100;
+      //   });
+
+
     });
   }
 
@@ -141,6 +144,27 @@ window.onload = function () {
     var now = Date.now();
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    var delaunay = new Delaunay(nodes.map(function (node) {
+      return [ node.x, node.y ];
+    }));
+
+    var vertices = delaunay.triangulate();
+
+    ctx.strokeStyle = CONNECTOR_COLOR;
+
+    vertices.forEach(function (vertex, idx) {
+      if (idx % 3 === 0) {
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2 + vertex[0], canvas.height / 2 + vertex[1]);
+      } else {
+        ctx.lineTo(canvas.width / 2 + vertex[0], canvas.height / 2 + vertex[1]);
+      }
+      if (idx % 3 === 2) {
+        ctx.closePath();
+        ctx.stroke();
+      }
+    });
 
     nodes.forEach(function (node) {
       if (node.state === 'HIDING') {
@@ -162,13 +186,13 @@ window.onload = function () {
       );
       ctx.fill();
 
-      node.connectedNodes.forEach(function (otherNode) {
-        ctx.strokeStyle = CONNECTOR_COLOR;
-        ctx.beginPath();
-        ctx.moveTo(canvas.width / 2 + node.x, canvas.height / 2 + node.y);
-        ctx.lineTo(canvas.width / 2 + otherNode.x, canvas.height / 2 + otherNode.y);
-        ctx.stroke();
-      });
+      // node.connectedNodes.forEach(function (otherNode) {
+      //   ctx.strokeStyle = CONNECTOR_COLOR;
+      //   ctx.beginPath();
+      //   ctx.moveTo(canvas.width / 2 + node.x, canvas.height / 2 + node.y);
+      //   ctx.lineTo(canvas.width / 2 + otherNode.x, canvas.height / 2 + otherNode.y);
+      //   ctx.stroke();
+      // });
 
       node.waves.forEach(function (wave) {
         var elapsed = now - wave.delay - wave.t;
