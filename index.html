@@ -145,9 +145,14 @@ window.onload = function () {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    var delaunay = new Delaunay(nodes.map(function (node) {
-      return [ node.x, node.y ];
-    }));
+    var delaunay = new Delaunay(nodes
+      .filter(function (node) {
+        return node.state !== 'SPAWNING';
+      })
+      .map(function (node) {
+        return [ node.x, node.y ];
+      })
+    );
 
     var vertices = delaunay.triangulate();
 
