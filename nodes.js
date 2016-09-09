@@ -3,8 +3,8 @@ function Nodes(canvas, config) {
   canvas.height = canvas.offsetHeight;
 
   var origin = {
-    x: canvas.width/ 2,
-    y: canvas.height/ 2
+    x: canvas.width / 2,
+    y: canvas.height / 2
   };
 
   var ctx = canvas.getContext('2d');
