@@ -1,17 +1,3 @@
-var SPAWN_STEPS = [{
-  d: 3000,
-  r: 0.25,
-  n: 10
-}, {
-  d: 1000,
-  r: .5,
-  n: 50
-}, {
-  d: 1000,
-  r: 1,
-  n: 100
-}];
-
 function Nodes(canvas, config) {
   canvas.width = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
@@ -282,7 +268,7 @@ function Nodes(canvas, config) {
   }
 
   function start() {
-    spawnSteps = SPAWN_STEPS.slice(0);
+    spawnSteps = config.spawnSteps.slice(0);
     prevMinRadius = 0;
 
     nodes = [];
