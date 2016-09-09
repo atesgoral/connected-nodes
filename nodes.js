@@ -81,11 +81,13 @@ function Nodes(canvas, config) {
       case 'SPAWNING':
         if (elapsed >= config.nodeFade) {
           node.state = 'SILENT';
-          node.t = now - Math.random() * NODE_SILENT_DURATION;
+          node.silence = Math.random();
+          node.t = now;
+          // - ((config.waveMaxWait - config.waveMinWait) * Math.random() + config.waveMinWait)
         }
         return;
       case 'SILENT':
-        if (config.wavesEnabled && elapsed >= NODE_SILENT_DURATION) {
+        if (config.wavesEnabled && elapsed >= (config.waveMaxWait - config.waveMinWait) * node.silence + config.waveMinWait) {
           var waveCount = Math.floor((config.waveMaxCount - config.waveMinCount) * Math.random()) + config.waveMinCount;
 
           for (var i = 0; i < waveCount; i++) {
@@ -106,6 +108,7 @@ function Nodes(canvas, config) {
 
         if (!node.waves.length) {
           node.state = 'SILENT';
+          node.silence = Math.random();
           node.t = now;
         }
         break;
@@ -128,7 +131,7 @@ function Nodes(canvas, config) {
           var d = Math.sqrt(dx * dx + dy * dy);
           var connection = connections[cid];
 
-          if (d <= config.connMaxDistance) {
+          if (d <= config.connMaxDistance && d >= config.connMinDistance) {
             if (
               !connection
               && node.connections < config.connMaxPerNode

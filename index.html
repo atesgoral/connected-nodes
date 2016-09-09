@@ -50,6 +50,8 @@ window.onload = function () {
     this.wavesEnabled = true;
     this.waveColor = '#fff';
     this.waveOpacity = 1;
+    this.waveMinWait = 0;
+    this.waveMaxWait = 40000;
     this.waveDuration = 2500;
     this.waveMaxDistance = 30;
     this.waveMinCount = 1;
@@ -59,6 +61,7 @@ window.onload = function () {
     this.connColor = '#fff';
     this.connOpacity = 0.33;
     this.connFade = 4000;
+    this.connMinDistance = 0;
     this.connMaxDistance = 200;
     this.connMaxPerNode = 5;
   }
@@ -76,7 +79,7 @@ window.onload = function () {
   nodeProps.open();
   nodeProps.addColor(config, 'nodeColor');
   nodeProps.add(config, 'nodeOpacity', 0, 1);
-  nodeProps.add(config, 'nodeFade', 0, 10000).step(1);
+  nodeProps.add(config, 'nodeFade', 0, 10000).step(250);
   nodeProps.add(config, 'nodeMinRadius', 0, 10).step(1);
   nodeProps.add(config, 'nodeMaxRadius', 0, 10).step(1);
   nodeProps.add(config, 'nodeMinVelocity', 0, 2);
@@ -87,7 +90,9 @@ window.onload = function () {
   waveProps.add(config, 'wavesEnabled');
   waveProps.addColor(config, 'waveColor');
   waveProps.add(config, 'waveOpacity', 0, 1);
-  waveProps.add(config, 'waveDuration', 0, 10000).step(1);
+  waveProps.add(config, 'waveMinWait', 0, 60000).step(250);
+  waveProps.add(config, 'waveMaxWait', 0, 60000).step(250);
+  waveProps.add(config, 'waveDuration', 0, 10000).step(250);
   waveProps.add(config, 'waveMaxDistance', 0, 200).step(1);
   waveProps.add(config, 'waveMinCount', 1, 10).step(1);
   waveProps.add(config, 'waveMaxCount', 1, 10).step(1);
@@ -97,7 +102,8 @@ window.onload = function () {
   connProps.add(config, 'connsEnabled');
   connProps.addColor(config, 'connColor');
   connProps.add(config, 'connOpacity', 0, 1);
-  connProps.add(config, 'connFade', 0, 10000).step(1);
+  connProps.add(config, 'connFade', 0, 10000).step(250);
+  connProps.add(config, 'connMinDistance', 0, 2000).step(1);
   connProps.add(config, 'connMaxDistance', 0, 2000).step(1);
   connProps.add(config, 'connMaxPerNode', 0, 100).step(1);
 
