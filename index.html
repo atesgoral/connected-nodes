@@ -34,12 +34,8 @@ canvas {
 <canvas>
 </canvas>
 <div id="overlay"></div>
+<script src ="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5.1/dat.gui.min.js"></script>
 <script>
-var NODE_COLOR = '#fff';
-var WAVE_COLOR = '#fff';
-var CONNECTION_COLOR = '#fff';
-var CONNECTION_ALPHA = 0.33;
-
 var SPAWN_DURATION = 500;
 var SPAWN_STEPS = [{
   d: 3000,
@@ -54,7 +50,6 @@ var SPAWN_STEPS = [{
   r: 1,
   n: 100
 }];
-var CONNECTION_DURATION = 4000;
 var CONNECTION_MAX_DISTANCE = 200;
 var MAX_CONNECTIONS_PER_NODE = 5;
 
@@ -65,9 +60,7 @@ var NODE_SILENT_DURATION = 40000;
 var WAVE_MAX_DURATION = 2500;
 var WAVE_MAX_DISTANCE = 30;
 
-window.onload = function () {
-  var canvas = document.getElementsByTagName('canvas')[0];
-
+function Nodes(canvas, config) {
   canvas.width = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
 
@@ -82,9 +75,6 @@ window.onload = function () {
     nodes.forEach(function (node, idx) {
       node.x += Math.cos(node.a) * node.v;
       node.y += Math.sin(node.a) * node.v;
-
-      // node.x = (node.x + canvas.width / 2) % canvas.width - canvas.width / 2;
-      // node.y = (node.y + canvas.height / 2) % canvas.height - canvas.height / 2;
 
       if (node.x < - canvas.width / 2 || node.x > canvas.width / 2) {
         node.a = Math.PI - node.a;
@@ -110,7 +100,7 @@ window.onload = function () {
         }
         return;
       case 'SILENT':
-        if (elapsed >= NODE_SILENT_DURATION) {
+        if (config.wavesEnabled && elapsed >= NODE_SILENT_DURATION) {
           node.waves.push({
             t: now,
             delay: 0
@@ -138,19 +128,24 @@ window.onload = function () {
         break;
       }
 
+      if (!config.connectionsEnabled) {
+        connections = {};
+        return;
+      }
+
       for (var cid in connections) {
         var connection = connections[cid];
         var elapsed = now - connection.t;
 
         switch (connection.state) {
         case 'CONNECTING':
-          if (elapsed >= CONNECTION_DURATION) {
+          if (elapsed >= config.connectionDuration) {
             connection.state = 'CONNECTED';
             connection.t = now;
           }
           break;
         case 'DISCONNECTING':
-          if (elapsed >= CONNECTION_DURATION) {
+          if (elapsed >= config.connectionDuration) {
             connection.node1.connections--;
             connection.node2.connections--;
             delete connections[cid];
@@ -206,16 +201,16 @@ window.onload = function () {
 
       switch (connection.state) {
       case 'CONNECTING':
-        ctx.globalAlpha = Math.min(1, (now - connection.t) / CONNECTION_DURATION) * CONNECTION_ALPHA;
+        ctx.globalAlpha = Math.min(1, (now - connection.t) / config.connectionDuration) * config.connectionOpacity;
         break;
       case 'DISCONNECTING':
-        ctx.globalAlpha = (1 - Math.min(1, (now - connection.t) / CONNECTION_DURATION)) * CONNECTION_ALPHA;
+        ctx.globalAlpha = (1 - Math.min(1, (now - connection.t) / config.connectionDuration)) * config.connectionOpacity;
         break;
       default:
-        ctx.globalAlpha = CONNECTION_ALPHA;
+        ctx.globalAlpha = config.connectionOpacity;
       }
 
-      ctx.strokeStyle = CONNECTION_COLOR;
+      ctx.strokeStyle = config.connectionColor;
       ctx.beginPath();
       ctx.moveTo(canvas.width / 2 + connection.node1.x, canvas.height / 2 + connection.node1.y);
       ctx.lineTo(canvas.width / 2 + connection.node2.x, canvas.height / 2 + connection.node2.y);
@@ -230,10 +225,12 @@ window.onload = function () {
       }
 
       if (node.state === 'SPAWNING') {
-        ctx.globalAlpha = Math.max(0, now - node.t) / SPAWN_DURATION;
+        ctx.globalAlpha = Math.max(0, now - node.t) / SPAWN_DURATION * config.nodeOpacity;
+      } else {
+        ctx.globalAlpha = config.nodeOpacity;
       }
 
-      ctx.fillStyle = NODE_COLOR;
+      ctx.fillStyle = config.nodeColor;
       ctx.beginPath();
       ctx.arc(
         canvas.width / 2 + node.x,
@@ -255,8 +252,8 @@ window.onload = function () {
 
         var n = Math.max(0, WAVE_MAX_DURATION - elapsed) / WAVE_MAX_DURATION;
 
-        ctx.globalAlpha = n;
-        ctx.strokeStyle = WAVE_COLOR;
+        ctx.globalAlpha = n * config.waveOpacity;
+        ctx.strokeStyle = config.waveColor;
         ctx.beginPath();
         ctx.arc(
           canvas.width / 2 + node.x,
@@ -319,5 +316,46 @@ window.onload = function () {
   spawnNodes();
 
   tick();
+}
+
+window.onload = function () {
+  function Config() {
+    this.nodeColor = '#fff';
+    this.nodeOpacity = 1;
+
+    this.wavesEnabled = true;
+    this.waveColor = '#fff';
+    this.waveOpacity = 1;
+
+    this.connectionsEnabled = true;
+    this.connectionColor = '#fff';
+    this.connectionOpacity = 0.33;
+    this.connectionDuration = 4000;
+  }
+
+  var config = new Config();
+  var canvas = document.getElementsByTagName('canvas')[0];
+  var nodes = new Nodes(canvas, config);
+  var gui = new dat.GUI({
+    width: 300
+  });
+
+  var nodeProps = gui.addFolder('Nodes');
+  nodeProps.open();
+  nodeProps.addColor(config, 'nodeColor');
+  nodeProps.add(config, 'nodeOpacity', 0, 1);
+
+  var waveProps = gui.addFolder('Waves');
+  waveProps.open();
+  waveProps.add(config, 'wavesEnabled');
+  waveProps.addColor(config, 'waveColor');
+  waveProps.add(config, 'waveOpacity', 0, 1);
+
+  var connProps = gui.addFolder('Connections');
+  connProps.open();
+  connProps.add(config, 'connectionsEnabled');
+  connProps.addColor(config, 'connectionColor');
+  connProps.add(config, 'connectionOpacity', 0, 1);
+  connProps.add(config, 'connectionDuration', 0, 10000);
 };
 </script>
