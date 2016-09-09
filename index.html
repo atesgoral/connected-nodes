@@ -38,6 +38,7 @@ canvas {
 var NODE_COLOR = '#fff';
 var WAVE_COLOR = '#fff';
 var CONNECTION_COLOR = '#fff';
+var CONNECTION_ALPHA = 0.33;
 
 var SPAWN_DURATION = 500;
 var SPAWN_STEPS = [{
@@ -55,10 +56,10 @@ var SPAWN_STEPS = [{
 }];
 var CONNECTION_DURATION = 4000;
 var CONNECTION_MAX_DISTANCE = 200;
-var MAX_CONNECTIONS_PER_NODE = 2;
+var MAX_CONNECTIONS_PER_NODE = 5;
 
 var NODE_RADIUS = 2;
-var NODE_VELOCITY = 0.075;
+var NODE_VELOCITY = 0.175;
 var NODE_SILENT_DURATION = 40000;
 
 var WAVE_MAX_DURATION = 2500;
@@ -73,6 +74,7 @@ window.onload = function () {
   var ctx = canvas.getContext('2d');
 
   var nodes = [];
+  var connections = {};
 
   function process() {
     var now = Date.now();
@@ -93,14 +95,6 @@ window.onload = function () {
       }
 
       var elapsed = now - node.t;
-
-      for (var otherIndex in node.connections) {
-        var connection = node.connections[otherIndex];
-
-        if (connection && connection.disconnecting && now - connection.t >= CONNECTION_DURATION) {
-          delete node.connections[otherIndex];
-        }
-      }
 
       switch (node.state) {
       case 'HIDING':
@@ -144,43 +138,61 @@ window.onload = function () {
         break;
       }
 
-      nodes.forEach(function (otherNode, otherIdx) {
-        if (otherNode.state === 'HIDING' || otherNode.state === 'SPAWNING') {
-          return;
-        }
+      for (var cid in connections) {
+        var connection = connections[cid];
+        var elapsed = now - connection.t;
 
-        var dx = node.x - otherNode.x;
-        var dy = node.y - otherNode.y;
-        var d = Math.sqrt(dx * dx + dy * dy);
-        var connection = node.connections[otherIdx];
-
-        if (d <= CONNECTION_MAX_DISTANCE) {
-          if (connection) {
-            if (now - connection.t >= CONNECTION_DURATION) {
-              connection.connecting = false;
-            }
-          } else {
-            var otherNode = nodes[otherIdx];
-
-            if (
-              otherIdx !== idx
-              && !otherNode.connections[idx]
-              && Object.keys(node.connections).length < MAX_CONNECTIONS_PER_NODE
-              && Object.keys(otherNode.connections).length < MAX_CONNECTIONS_PER_NODE
-            ) {
-              node.connections[otherIdx] = {
-                connecting: true,
-                t: now
-              };
-            }
-          }
-        } else {
-          if (connection && !connection.disconnecting && !connection.connecting) {
-            connection.disconnecting = true;
+        switch (connection.state) {
+        case 'CONNECTING':
+          if (elapsed >= CONNECTION_DURATION) {
+            connection.state = 'CONNECTED';
             connection.t = now;
           }
+          break;
+        case 'DISCONNECTING':
+          if (elapsed >= CONNECTION_DURATION) {
+            connection.node1.connections--;
+            connection.node2.connections--;
+            delete connections[cid];
+          }
+          break;
         }
-      });
+      }
+
+      nodes
+        .slice(idx + 1)
+        .filter(function (otherNode) {
+          return otherNode.state !== 'HIDING' && otherNode.state !== 'SPAWNING';
+        })
+        .forEach(function (otherNode, otherIdx) {
+          var cid = idx + '-' + otherIdx;
+          var dx = node.x - otherNode.x;
+          var dy = node.y - otherNode.y;
+          var d = Math.sqrt(dx * dx + dy * dy);
+          var connection = connections[cid];
+
+          if (d <= CONNECTION_MAX_DISTANCE) {
+            if (
+              !connection
+              && node.connections < MAX_CONNECTIONS_PER_NODE
+              && otherNode.connections < MAX_CONNECTIONS_PER_NODE
+            ) {
+              connections[cid] = {
+                state: 'CONNECTING',
+                t: now,
+                node1: node,
+                node2: otherNode
+              };
+              node.connections++;
+              otherNode.connections++;
+            }
+          } else {
+            if (connection && connection.state === 'CONNECTED') {
+              connection.state = 'DISCONNECTING';
+              connection.t = now;
+            }
+          }
+        });
     });
   }
 
@@ -188,6 +200,29 @@ window.onload = function () {
     var now = Date.now();
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (var cid in connections) {
+      var connection = connections[cid];
+
+      switch (connection.state) {
+      case 'CONNECTING':
+        ctx.globalAlpha = Math.min(1, (now - connection.t) / CONNECTION_DURATION) * CONNECTION_ALPHA;
+        break;
+      case 'DISCONNECTING':
+        ctx.globalAlpha = (1 - Math.min(1, (now - connection.t) / CONNECTION_DURATION)) * CONNECTION_ALPHA;
+        break;
+      default:
+        ctx.globalAlpha = CONNECTION_ALPHA;
+      }
+
+      ctx.strokeStyle = CONNECTION_COLOR;
+      ctx.beginPath();
+      ctx.moveTo(canvas.width / 2 + connection.node1.x, canvas.height / 2 + connection.node1.y);
+      ctx.lineTo(canvas.width / 2 + connection.node2.x, canvas.height / 2 + connection.node2.y);
+      ctx.stroke();
+
+      ctx.globalAlpha = 1;
+    };
 
     nodes.forEach(function (node) {
       if (node.state === 'HIDING') {
@@ -210,30 +245,6 @@ window.onload = function () {
       ctx.fill();
 
       ctx.globalAlpha = 1;
-
-      for (var otherIdx in node.connections) {
-        var connection = node.connections[otherIdx];
-
-        if (!connection) {
-          continue;
-        }
-
-        var otherNode = nodes[otherIdx];
-
-        if (connection.connecting) {
-          ctx.globalAlpha = Math.min(1, (now - connection.t) / CONNECTION_DURATION);
-        } else if (connection.disconnecting) {
-          ctx.globalAlpha = 1 - Math.min(1, (now - connection.t) / CONNECTION_DURATION);
-        }
-
-        ctx.strokeStyle = CONNECTION_COLOR;
-        ctx.beginPath();
-        ctx.moveTo(canvas.width / 2 + node.x, canvas.height / 2 + node.y);
-        ctx.lineTo(canvas.width / 2 + otherNode.x, canvas.height / 2 + otherNode.y);
-        ctx.stroke();
-
-        ctx.globalAlpha = 1;
-      };
 
       node.waves.forEach(function (wave) {
         var elapsed = now - wave.delay - wave.t;
@@ -280,7 +291,7 @@ window.onload = function () {
       waves: [],
       state: 'HIDING',
       hideDuration: maxHideDuration * Math.random(),
-      connections: {}
+      connections: 0
     };
 
     nodes.push(newNode);
