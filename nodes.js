@@ -24,15 +24,17 @@ function Nodes(canvas, config) {
 
   var ctx = canvas.getContext('2d');
 
-  var nodes = [];
-  var connections = {};
+  var nodes;
+  var connections;
 
   function process() {
     var now = Date.now();
 
     nodes.forEach(function (node, idx) {
-      node.x += Math.cos(node.a) * node.v;
-      node.y += Math.sin(node.a) * node.v;
+      var velocity = (config.nodeMaxVelocity - config.nodeMinVelocity) * node.v + config.nodeMinVelocity;
+
+      node.x += Math.cos(node.a) * velocity;
+      node.y += Math.sin(node.a) * velocity;
 
       if (node.x < -origin.x || node.x > origin.x) {
         node.a = Math.PI - node.a;
@@ -227,10 +229,13 @@ function Nodes(canvas, config) {
     });
   }
 
+  var spawnTimeout;
+  var tickTimeout;
+
   function tick() {
     paint();
     process();
-    setTimeout(tick, 1000 / 50);
+    tickTimeout = setTimeout(tick, 1000 / 50);
   }
 
   function spawnNode(spawnMinRadius, spawnMaxRadius, maxHideDuration) {
@@ -240,7 +245,7 @@ function Nodes(canvas, config) {
       x: Math.cos(a) * r * origin.x,
       y: Math.sin(a) * r * origin.y,
       a: 2 * Math.PI * Math.random(),
-      v: config.nodeVelocity,
+      v: Math.random(),
       r: Math.random(),
       t: Date.now(),
       waves: [],
@@ -252,7 +257,8 @@ function Nodes(canvas, config) {
     nodes.push(newNode);
   }
 
-  var prevMinRadius = 0;
+  var spawnSteps;
+  var prevMinRadius;
 
   function spawnNodes() {
     var spawnStep = spawnSteps[0];
@@ -265,13 +271,26 @@ function Nodes(canvas, config) {
     spawnSteps.shift();
 
     if (spawnSteps.length) {
-      setTimeout(spawnNodes, spawnStep.d);
+      spawnTimeout = setTimeout(spawnNodes, spawnStep.d);
     }
   }
 
-  var spawnSteps = SPAWN_STEPS;
+  function start() {
+    spawnSteps = SPAWN_STEPS.slice(0);
+    prevMinRadius = 0;
 
-  spawnNodes();
+    nodes = [];
+    connections = {};
 
-  tick();
+    spawnNodes();
+    tick();
+  }
+
+  this.restart = function () {
+    clearTimeout(tickTimeout);
+    clearTimeout(spawnTimeout);
+    start();
+  }
+
+  start();
 }

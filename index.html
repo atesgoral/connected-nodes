@@ -44,7 +44,8 @@ window.onload = function () {
     this.nodeFade = 500;
     this.nodeMinRadius = 2;
     this.nodeMaxRadius = 2;
-    this.nodeVelocity = 0.075;
+    this.nodeMinVelocity = 0.075;
+    this.nodeMaxVelocity = 0.075;
 
     this.wavesEnabled = true;
     this.waveColor = '#fff';
@@ -78,7 +79,8 @@ window.onload = function () {
   nodeProps.add(config, 'nodeFade', 0, 10000).step(1);
   nodeProps.add(config, 'nodeMinRadius', 0, 10).step(1);
   nodeProps.add(config, 'nodeMaxRadius', 0, 10).step(1);
-  nodeProps.add(config, 'nodeVelocity', 0, 10);
+  nodeProps.add(config, 'nodeMinVelocity', 0, 2);
+  nodeProps.add(config, 'nodeMaxVelocity', 0, 2);
 
   var waveProps = gui.addFolder('Waves');
   waveProps.open();
@@ -98,5 +100,14 @@ window.onload = function () {
   connProps.add(config, 'connFade', 0, 10000).step(1);
   connProps.add(config, 'connMaxDistance', 0, 2000).step(1);
   connProps.add(config, 'connMaxPerNode', 0, 100).step(1);
+
+  var restartButton = document.createElement('span');
+  restartButton.className = 'button';
+  restartButton.innerHTML = 'Restart';
+  restartButton.addEventListener('click', function () {
+    nodes.restart();
+  });
+
+  document.getElementsByClassName('save-row')[0].appendChild(restartButton);
 };
 </script>
