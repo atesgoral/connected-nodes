@@ -55,7 +55,7 @@ var SPAWN_STEPS = [{
 }];
 var CONNECTION_DURATION = 4000;
 var CONNECTION_MAX_DISTANCE = 200;
-var MAX_CONNECTIONS = 2;
+var MAX_CONNECTIONS_PER_NODE = 2;
 
 var NODE_RADIUS = 2;
 var NODE_VELOCITY = 0.075;
@@ -165,8 +165,8 @@ window.onload = function () {
             if (
               otherIdx !== idx
               && !otherNode.connections[idx]
-              && Object.keys(node.connections).length < MAX_CONNECTIONS
-              && Object.keys(otherNode.connections).length < MAX_CONNECTIONS
+              && Object.keys(node.connections).length < MAX_CONNECTIONS_PER_NODE
+              && Object.keys(otherNode.connections).length < MAX_CONNECTIONS_PER_NODE
             ) {
               node.connections[otherIdx] = {
                 connecting: true,
