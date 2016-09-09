@@ -89,6 +89,8 @@ window.onload = function () {
 
   gui.remember(config);
 
+  gui.add(nodes, 'restart');
+
   var nodeProps = gui.addFolder('Nodes');
   nodeProps.open();
   nodeProps.addColor(config, 'nodeColor');
@@ -120,13 +122,6 @@ window.onload = function () {
   connProps.add(config, 'connMinDistance', 0, 2000).step(1);
   connProps.add(config, 'connMaxDistance', 0, 2000).step(1);
   connProps.add(config, 'connMaxPerNode', 0, 100).step(1);
-
-  var restartButton = document.createElement('span');
-  restartButton.className = 'button';
-  restartButton.innerHTML = 'Restart';
-  restartButton.addEventListener('click', function () {
-    nodes.restart();
-  });
 
   document.getElementsByClassName('save-row')[0].appendChild(restartButton);
 };
