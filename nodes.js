@@ -1,13 +1,21 @@
 function Nodes(canvas, config) {
-  canvas.width = canvas.offsetWidth;
-  canvas.height = canvas.offsetHeight;
+  var width = canvas.offsetWidth;
+  var height = canvas.offsetHeight;
+
+  canvas.width = width * 2;
+  canvas.height = height * 2;
+
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
 
   var origin = {
-    x: canvas.width / 2,
-    y: canvas.height / 2
+    x: width / 2,
+    y: height / 2
   };
 
   var ctx = canvas.getContext('2d');
+
+  ctx.scale(2, 2);
 
   var nodes;
   var connections;
