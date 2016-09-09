@@ -40,7 +40,8 @@ function Nodes(canvas, config) {
       connections = {};
     }
 
-    nodes.forEach(function (node, idx) {
+    for (var idx = 0; idx < nodes.length; idx++) {
+      var node = nodes[idx];
       var velocity = (config.nodeMaxVelocity - config.nodeMinVelocity) * node.v + config.nodeMinVelocity;
 
       node.x += Math.cos(node.a) * velocity;
@@ -62,7 +63,7 @@ function Nodes(canvas, config) {
           node.state = 'SPAWNING';
           node.t = now;
         }
-        return;
+        continue;
       case 'SPAWNING':
         if (elapsed >= config.nodeFade) {
           node.state = 'SILENT';
@@ -70,7 +71,7 @@ function Nodes(canvas, config) {
           node.t = now;
           // - ((config.waveMaxWait - config.waveMinWait) * Math.random() + config.waveMinWait)
         }
-        return;
+        continue;
       case 'SILENT':
         if (config.wavesEnabled && elapsed >= (config.waveMaxWait - config.waveMinWait) * node.silence + config.waveMinWait) {
           var waveCount = Math.floor((config.waveMaxCount - config.waveMinCount) * Math.random()) + config.waveMinCount;
@@ -101,44 +102,45 @@ function Nodes(canvas, config) {
 
       if (!config.connsEnabled) {
         node.connections = 0;
-        return;
+        continue;
       }
 
-      nodes
-        .slice(idx + 1)
-        .filter(function (otherNode) {
-          return otherNode.state !== 'HIDING' && otherNode.state !== 'SPAWNING';
-        })
-        .forEach(function (otherNode, otherIdx) {
-          var cid = idx + '-' + otherIdx;
-          var dx = node.x - otherNode.x;
-          var dy = node.y - otherNode.y;
-          var d = Math.sqrt(dx * dx + dy * dy);
-          var connection = connections[cid];
+      for (var otherIdx = idx + 1; otherIdx < nodes.length; otherIdx++) {
+        var otherNode = nodes[otherIdx];
 
-          if (d <= config.connMaxDistance && d >= config.connMinDistance) {
-            if (
-              !connection
-              && node.connections < config.connMaxPerNode
-              && otherNode.connections < config.connMaxPerNode
-            ) {
-              connections[cid] = {
-                state: 'CONNECTING',
-                t: now,
-                node1: node,
-                node2: otherNode
-              };
-              node.connections++;
-              otherNode.connections++;
-            }
-          } else {
-            if (connection && connection.state === 'CONNECTED') {
-              connection.state = 'DISCONNECTING';
-              connection.t = now;
-            }
+        if (otherNode.state === 'HIDING' || otherNode.state === 'SPAWNING') {
+          continue;
+        }
+
+        var cid = idx + '-' + otherIdx;
+        var dx = node.x - otherNode.x;
+        var dy = node.y - otherNode.y;
+        var d = Math.sqrt(dx * dx + dy * dy);
+        var connection = connections[cid];
+
+        if (d <= config.connMaxDistance && d >= config.connMinDistance) {
+          if (
+            !connection
+            && node.connections < config.connMaxPerNode
+            && otherNode.connections < config.connMaxPerNode
+          ) {
+            connections[cid] = {
+              state: 'CONNECTING',
+              t: now,
+              node1: node,
+              node2: otherNode
+            };
+            node.connections++;
+            otherNode.connections++;
           }
-        });
-    });
+        } else {
+          if (connection && connection.state === 'CONNECTED') {
+            connection.state = 'DISCONNECTING';
+            connection.t = now;
+          }
+        }
+      }
+    }
   }
 
   function paint() {
@@ -169,9 +171,11 @@ function Nodes(canvas, config) {
       ctx.globalAlpha = 1;
     };
 
-    nodes.forEach(function (node) {
+    for (var idx = 0; idx < nodes.length; idx++) {
+      var node = nodes[idx];
+
       if (node.state === 'HIDING') {
-        return;
+        continue;
       }
 
       if (node.state === 'SPAWNING') {
@@ -195,11 +199,12 @@ function Nodes(canvas, config) {
 
       ctx.globalAlpha = 1;
 
-      node.waves.forEach(function (wave) {
+      for (var waveIdx = 0; waveIdx < node.waves.length; waveIdx++) {
+        var wave = node.waves[waveIdx];
         var elapsed = now - wave.delay - wave.t;
 
         if (elapsed < 0) {
-          return;
+          continue;
         }
 
         var n = Math.max(0, config.waveDuration - elapsed) / config.waveDuration;
@@ -215,10 +220,10 @@ function Nodes(canvas, config) {
           Math.PI * 2
         );
         ctx.stroke();
-      });
+      }
 
       ctx.globalAlpha = 1;
-    });
+    }
   }
 
   var spawnTimeout;
