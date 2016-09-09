@@ -36,7 +36,6 @@ canvas {
 <div id="overlay"></div>
 <script src ="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5.1/dat.gui.min.js"></script>
 <script>
-var SPAWN_DURATION = 500;
 var SPAWN_STEPS = [{
   d: 3000,
   r: 0.25,
@@ -50,15 +49,7 @@ var SPAWN_STEPS = [{
   r: 1,
   n: 100
 }];
-var CONNECTION_MAX_DISTANCE = 200;
-var MAX_CONNECTIONS_PER_NODE = 5;
-
-var NODE_RADIUS = 2;
-var NODE_VELOCITY = 0.175;
 var NODE_SILENT_DURATION = 40000;
-
-var WAVE_MAX_DURATION = 2500;
-var WAVE_MAX_DISTANCE = 30;
 
 function Nodes(canvas, config) {
   canvas.width = canvas.offsetWidth;
@@ -94,31 +85,29 @@ function Nodes(canvas, config) {
         }
         return;
       case 'SPAWNING':
-        if (elapsed >= SPAWN_DURATION) {
+        if (elapsed >= config.nodeFade) {
           node.state = 'SILENT';
           node.t = now - Math.random() * NODE_SILENT_DURATION;
         }
         return;
       case 'SILENT':
         if (config.wavesEnabled && elapsed >= NODE_SILENT_DURATION) {
-          node.waves.push({
-            t: now,
-            delay: 0
-          }, {
-            t: now,
-            delay: WAVE_MAX_DURATION / 3
-          }, {
-            t: now,
-            delay: WAVE_MAX_DURATION / 3 * 2
-          });
-          node.waves.length = Math.floor(Math.random() * 3) + 1;
+          var waveCount = Math.floor((config.waveMaxCount - config.waveMinCount) * Math.random()) + config.waveMinCount;
+
+          for (var i = 0; i < waveCount; i++) {
+            node.waves.push({
+              t: now,
+              delay: config.waveDuration / 3 * i
+            });
+          }
+
           node.state = 'EMITTING';
           node.t = now;
         }
         break;
       case 'EMITTING':
         node.waves = node.waves.filter(function (wave) {
-          return now - wave.delay - wave.t <= WAVE_MAX_DURATION
+          return now - wave.delay - wave.t <= config.waveDuration
         });
 
         if (!node.waves.length) {
@@ -128,7 +117,7 @@ function Nodes(canvas, config) {
         break;
       }
 
-      if (!config.connectionsEnabled) {
+      if (!config.connsEnabled) {
         connections = {};
         return;
       }
@@ -139,13 +128,13 @@ function Nodes(canvas, config) {
 
         switch (connection.state) {
         case 'CONNECTING':
-          if (elapsed >= config.connectionDuration) {
+          if (elapsed >= config.connFade) {
             connection.state = 'CONNECTED';
             connection.t = now;
           }
           break;
         case 'DISCONNECTING':
-          if (elapsed >= config.connectionDuration) {
+          if (elapsed >= config.connFade) {
             connection.node1.connections--;
             connection.node2.connections--;
             delete connections[cid];
@@ -166,11 +155,11 @@ function Nodes(canvas, config) {
           var d = Math.sqrt(dx * dx + dy * dy);
           var connection = connections[cid];
 
-          if (d <= CONNECTION_MAX_DISTANCE) {
+          if (d <= config.connMaxDistance) {
             if (
               !connection
-              && node.connections < MAX_CONNECTIONS_PER_NODE
-              && otherNode.connections < MAX_CONNECTIONS_PER_NODE
+              && node.connections < config.connMaxPerNode
+              && otherNode.connections < config.connMaxPerNode
             ) {
               connections[cid] = {
                 state: 'CONNECTING',
@@ -201,16 +190,16 @@ function Nodes(canvas, config) {
 
       switch (connection.state) {
       case 'CONNECTING':
-        ctx.globalAlpha = Math.min(1, (now - connection.t) / config.connectionDuration) * config.connectionOpacity;
+        ctx.globalAlpha = Math.min(1, (now - connection.t) / config.connFade) * config.connOpacity;
         break;
       case 'DISCONNECTING':
-        ctx.globalAlpha = (1 - Math.min(1, (now - connection.t) / config.connectionDuration)) * config.connectionOpacity;
+        ctx.globalAlpha = (1 - Math.min(1, (now - connection.t) / config.connFade)) * config.connOpacity;
         break;
       default:
-        ctx.globalAlpha = config.connectionOpacity;
+        ctx.globalAlpha = config.connOpacity;
       }
 
-      ctx.strokeStyle = config.connectionColor;
+      ctx.strokeStyle = config.connColor;
       ctx.beginPath();
       ctx.moveTo(canvas.width / 2 + connection.node1.x, canvas.height / 2 + connection.node1.y);
       ctx.lineTo(canvas.width / 2 + connection.node2.x, canvas.height / 2 + connection.node2.y);
@@ -225,17 +214,19 @@ function Nodes(canvas, config) {
       }
 
       if (node.state === 'SPAWNING') {
-        ctx.globalAlpha = Math.max(0, now - node.t) / SPAWN_DURATION * config.nodeOpacity;
+        ctx.globalAlpha = Math.max(0, now - node.t) / config.nodeFade * config.nodeOpacity;
       } else {
         ctx.globalAlpha = config.nodeOpacity;
       }
+
+      var nodeRadius = (config.nodeMaxRadius - config.nodeMinRadius) * node.r + config.nodeMinRadius;
 
       ctx.fillStyle = config.nodeColor;
       ctx.beginPath();
       ctx.arc(
         canvas.width / 2 + node.x,
         canvas.height / 2 + node.y,
-        node.r,
+        nodeRadius,
         0,
         Math.PI * 2
       );
@@ -250,7 +241,7 @@ function Nodes(canvas, config) {
           return;
         }
 
-        var n = Math.max(0, WAVE_MAX_DURATION - elapsed) / WAVE_MAX_DURATION;
+        var n = Math.max(0, config.waveDuration - elapsed) / config.waveDuration;
 
         ctx.globalAlpha = n * config.waveOpacity;
         ctx.strokeStyle = config.waveColor;
@@ -258,7 +249,7 @@ function Nodes(canvas, config) {
         ctx.arc(
           canvas.width / 2 + node.x,
           canvas.height / 2 + node.y,
-          node.r + (1 - n) * WAVE_MAX_DISTANCE,
+          nodeRadius + (1 - n) * config.waveMaxDistance,
           0,
           Math.PI * 2
         );
@@ -282,8 +273,8 @@ function Nodes(canvas, config) {
       x: Math.cos(a) * r * canvas.width / 2,
       y: Math.sin(a) * r * canvas.height / 2,
       a: 2 * Math.PI * Math.random(),
-      v: NODE_VELOCITY,
-      r: NODE_RADIUS,
+      v: config.nodeVelocity,
+      r: Math.random(),
       t: Date.now(),
       waves: [],
       state: 'HIDING',
@@ -322,15 +313,25 @@ window.onload = function () {
   function Config() {
     this.nodeColor = '#fff';
     this.nodeOpacity = 1;
+    this.nodeFade = 500;
+    this.nodeMinRadius = 2;
+    this.nodeMaxRadius = 2;
+    this.nodeVelocity = 0.075;
 
     this.wavesEnabled = true;
     this.waveColor = '#fff';
     this.waveOpacity = 1;
+    this.waveDuration = 2500;
+    this.waveMaxDistance = 30;
+    this.waveMinCount = 1;
+    this.waveMaxCount = 3;
 
-    this.connectionsEnabled = true;
-    this.connectionColor = '#fff';
-    this.connectionOpacity = 0.33;
-    this.connectionDuration = 4000;
+    this.connsEnabled = true;
+    this.connColor = '#fff';
+    this.connOpacity = 0.33;
+    this.connFade = 4000;
+    this.connMaxDistance = 200;
+    this.connMaxPerNode = 5;
   }
 
   var config = new Config();
@@ -344,18 +345,28 @@ window.onload = function () {
   nodeProps.open();
   nodeProps.addColor(config, 'nodeColor');
   nodeProps.add(config, 'nodeOpacity', 0, 1);
+  nodeProps.add(config, 'nodeFade', 0, 10000).step(1);
+  nodeProps.add(config, 'nodeMinRadius', 0, 10).step(1);
+  nodeProps.add(config, 'nodeMaxRadius', 0, 10).step(1);
+  nodeProps.add(config, 'nodeVelocity', 0, 10);
 
   var waveProps = gui.addFolder('Waves');
   waveProps.open();
   waveProps.add(config, 'wavesEnabled');
   waveProps.addColor(config, 'waveColor');
   waveProps.add(config, 'waveOpacity', 0, 1);
+  waveProps.add(config, 'waveDuration', 0, 10000).step(1);
+  waveProps.add(config, 'waveMaxDistance', 0, 200).step(1);
+  waveProps.add(config, 'waveMinCount', 1, 10).step(1);
+  waveProps.add(config, 'waveMaxCount', 1, 10).step(1);
 
   var connProps = gui.addFolder('Connections');
   connProps.open();
-  connProps.add(config, 'connectionsEnabled');
-  connProps.addColor(config, 'connectionColor');
-  connProps.add(config, 'connectionOpacity', 0, 1);
-  connProps.add(config, 'connectionDuration', 0, 10000);
+  connProps.add(config, 'connsEnabled');
+  connProps.addColor(config, 'connColor');
+  connProps.add(config, 'connOpacity', 0, 1);
+  connProps.add(config, 'connFade', 0, 10000).step(1);
+  connProps.add(config, 'connMaxDistance', 0, 2000).step(1);
+  connProps.add(config, 'connMaxPerNode', 0, 100).step(1);
 };
 </script>
