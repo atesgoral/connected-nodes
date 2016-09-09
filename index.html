@@ -34,7 +34,6 @@ canvas {
 <canvas>
 </canvas>
 <div id="overlay"></div>
-<!--script src="https://cdn.rawgit.com/Bathlamos/delaunay-triangulation/master/delaunay.js"></script-->
 <script>
 var NODE_COLOR = '#fff';
 var WAVE_COLOR = '#fff';
@@ -112,34 +111,6 @@ window.onload = function () {
         return;
       case 'SPAWNING':
         if (elapsed >= SPAWN_DURATION) {
-      //     var closest = nodes
-      //       .map(function (otherNode) {
-      //         var dx = node.x - otherNode.x;
-      //         var dy = node.y - otherNode.y;
-
-      //         return {
-      //           node: otherNode,
-      //           d: Math.sqrt(dx * dx + dy * dy)
-      //         };
-      //       })
-      //       .filter(function (measurement) {
-      //         return measurement.d > 0;
-      //       })
-      //       .sort(function (a, b) {
-      //         return b.d - a.d;
-      //       })
-      //       .pop();
-
-      //     if (closest) {
-      //       node.connectedNode = closest.node;
-      //     }
-
-      //     node.state = 'CONNECTING';
-      //     node.t = now;
-      //   }
-      //   break;
-      // case 'CONNECTING':
-      //   if (elapsed >= CONNECTION_DURATION) {
           node.state = 'SILENT';
           node.t = now - Math.random() * NODE_SILENT_DURATION;
         }
@@ -210,21 +181,6 @@ window.onload = function () {
           }
         }
       });
-
-      // node.connectedNodes = nodes
-      //   .slice(idx + 1)
-      //   .filter(function (otherNode) {
-      //     if (otherNode.state !== 'SILENT') {
-      //       return;
-      //     }
-
-      //     var dx = node.x - otherNode.x;
-      //     var dy = node.y - otherNode.y;
-      //     var d = Math.sqrt(dx * dx + dy * dy);
-
-      //     return d < 200 && d > 50;
-      //   })
-      //   .slice(0, 2);
     });
   }
 
@@ -232,32 +188,6 @@ window.onload = function () {
     var now = Date.now();
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // var delaunay = new Delaunay(nodes
-    //   .filter(function (node) {
-    //     return node.state !== 'SPAWNING';
-    //   })
-    //   .map(function (node) {
-    //     return [ node.x, node.y ];
-    //   })
-    // );
-
-    // var vertices = delaunay.triangulate();
-
-    // ctx.strokeStyle = CONNECTION_COLOR;
-
-    // vertices.forEach(function (vertex, idx) {
-    //   if (idx % 3 === 0) {
-    //     ctx.beginPath();
-    //     ctx.moveTo(canvas.width / 2 + vertex[0], canvas.height / 2 + vertex[1]);
-    //   } else {
-    //     ctx.lineTo(canvas.width / 2 + vertex[0], canvas.height / 2 + vertex[1]);
-    //   }
-    //   if (idx % 3 === 2) {
-    //     ctx.closePath();
-    //     ctx.stroke();
-    //   }
-    // });
 
     nodes.forEach(function (node) {
       if (node.state === 'HIDING') {
@@ -281,28 +211,6 @@ window.onload = function () {
 
       ctx.globalAlpha = 1;
 
-      // if (node.connectedNode) {
-      //   if (node.state === 'CONNECTING') {
-      //     ctx.globalAlpha = Math.max(0, now - node.t) / CONNECTION_DURATION;
-      //   }
-
-      //   ctx.strokeStyle = CONNECTION_COLOR;
-      //   ctx.beginPath();
-      //   ctx.moveTo(canvas.width / 2 + node.x, canvas.height / 2 + node.y);
-      //   ctx.lineTo(canvas.width / 2 + node.connectedNode.x, canvas.height / 2 + node.connectedNode.y);
-      //   ctx.stroke();
-
-      //   ctx.globalAlpha = 1;
-      // }
-
-      // node.connectedNodes.forEach(function (otherNode) {
-      //   ctx.strokeStyle = CONNECTION_COLOR;
-      //   ctx.beginPath();
-      //   ctx.moveTo(canvas.width / 2 + node.x, canvas.height / 2 + node.y);
-      //   ctx.lineTo(canvas.width / 2 + otherNode.x, canvas.height / 2 + otherNode.y);
-      //   ctx.stroke();
-      // });
-
       for (var otherIdx in node.connections) {
         var connection = node.connections[otherIdx];
 
@@ -316,7 +224,6 @@ window.onload = function () {
           ctx.globalAlpha = Math.min(1, (now - connection.t) / CONNECTION_DURATION);
         } else if (connection.disconnecting) {
           ctx.globalAlpha = 1 - Math.min(1, (now - connection.t) / CONNECTION_DURATION);
-          // console.log(ctx.globalAlpha);
         }
 
         ctx.strokeStyle = CONNECTION_COLOR;
