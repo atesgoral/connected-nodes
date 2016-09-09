@@ -69,7 +69,6 @@ function Nodes(canvas, config) {
           node.state = 'SILENT';
           node.silence = Math.random();
           node.t = now;
-          // - ((config.waveMaxWait - config.waveMinWait) * Math.random() + config.waveMinWait)
         }
         continue;
       case 'SILENT':
@@ -232,7 +231,7 @@ function Nodes(canvas, config) {
   function tick() {
     paint();
     process();
-    tickTimeout = setTimeout(tick, 1000 / 50);
+    tickTimeout = setTimeout(tick, 1000 / 25);
   }
 
   function spawnNode(spawnMinRadius, spawnMaxRadius, maxHideDuration) {
