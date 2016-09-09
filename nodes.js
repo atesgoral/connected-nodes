@@ -11,7 +11,6 @@ var SPAWN_STEPS = [{
   r: 1,
   n: 100
 }];
-var NODE_SILENT_DURATION = 40000;
 
 function Nodes(canvas, config) {
   canvas.width = canvas.offsetWidth;
