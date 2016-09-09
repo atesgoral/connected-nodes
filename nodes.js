@@ -17,6 +17,11 @@ function Nodes(canvas, config) {
   canvas.width = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
 
+  var origin = {
+    x: canvas.width/ 2,
+    y: canvas.height/ 2
+  };
+
   var ctx = canvas.getContext('2d');
 
   var nodes = [];
@@ -29,11 +34,11 @@ function Nodes(canvas, config) {
       node.x += Math.cos(node.a) * node.v;
       node.y += Math.sin(node.a) * node.v;
 
-      if (node.x < - canvas.width / 2 || node.x > canvas.width / 2) {
+      if (node.x < -origin.x || node.x > origin.x) {
         node.a = Math.PI - node.a;
       }
 
-      if (node.y < - canvas.height / 2 || node.y > canvas.height / 2) {
+      if (node.y < -origin.y || node.y > origin.y) {
         node.a = 2 * Math.PI - node.a;
       }
 
@@ -163,8 +168,8 @@ function Nodes(canvas, config) {
 
       ctx.strokeStyle = config.connColor;
       ctx.beginPath();
-      ctx.moveTo(canvas.width / 2 + connection.node1.x, canvas.height / 2 + connection.node1.y);
-      ctx.lineTo(canvas.width / 2 + connection.node2.x, canvas.height / 2 + connection.node2.y);
+      ctx.moveTo(origin.x + connection.node1.x, origin.y + connection.node1.y);
+      ctx.lineTo(origin.x + connection.node2.x, origin.y + connection.node2.y);
       ctx.stroke();
 
       ctx.globalAlpha = 1;
@@ -186,8 +191,8 @@ function Nodes(canvas, config) {
       ctx.fillStyle = config.nodeColor;
       ctx.beginPath();
       ctx.arc(
-        canvas.width / 2 + node.x,
-        canvas.height / 2 + node.y,
+        origin.x + node.x,
+        origin.y + node.y,
         nodeRadius,
         0,
         Math.PI * 2
@@ -209,8 +214,8 @@ function Nodes(canvas, config) {
         ctx.strokeStyle = config.waveColor;
         ctx.beginPath();
         ctx.arc(
-          canvas.width / 2 + node.x,
-          canvas.height / 2 + node.y,
+          origin.x + node.x,
+          origin.y + node.y,
           nodeRadius + (1 - n) * config.waveMaxDistance,
           0,
           Math.PI * 2
@@ -232,8 +237,8 @@ function Nodes(canvas, config) {
     var a = Math.random() * Math.PI * 2;
     var r = (spawnMaxRadius - spawnMinRadius) * Math.random() + spawnMinRadius;
     var newNode = {
-      x: Math.cos(a) * r * canvas.width / 2,
-      y: Math.sin(a) * r * canvas.height / 2,
+      x: Math.cos(a) * r * origin.x,
+      y: Math.sin(a) * r * origin.y,
       a: 2 * Math.PI * Math.random(),
       v: config.nodeVelocity,
       r: Math.random(),
