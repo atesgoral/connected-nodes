@@ -30,6 +30,31 @@ function Nodes(canvas, config) {
   function process() {
     var now = Date.now();
 
+    if (config.connsEnabled) {
+      for (var cid in connections) {
+        var connection = connections[cid];
+        var elapsed = now - connection.t;
+
+        switch (connection.state) {
+        case 'CONNECTING':
+          if (elapsed >= config.connFade) {
+            connection.state = 'CONNECTED';
+            connection.t = now;
+          }
+          break;
+        case 'DISCONNECTING':
+          if (elapsed >= config.connFade) {
+            connection.node1.connections--;
+            connection.node2.connections--;
+            delete connections[cid];
+          }
+          break;
+        }
+      }
+    } else {
+      connections = {};
+    }
+
     nodes.forEach(function (node, idx) {
       var velocity = (config.nodeMaxVelocity - config.nodeMinVelocity) * node.v + config.nodeMinVelocity;
 
@@ -87,29 +112,8 @@ function Nodes(canvas, config) {
       }
 
       if (!config.connsEnabled) {
-        connections = {};
+        node.connections = 0;
         return;
-      }
-
-      for (var cid in connections) {
-        var connection = connections[cid];
-        var elapsed = now - connection.t;
-
-        switch (connection.state) {
-        case 'CONNECTING':
-          if (elapsed >= config.connFade) {
-            connection.state = 'CONNECTED';
-            connection.t = now;
-          }
-          break;
-        case 'DISCONNECTING':
-          if (elapsed >= config.connFade) {
-            connection.node1.connections--;
-            connection.node2.connections--;
-            delete connections[cid];
-          }
-          break;
-        }
       }
 
       nodes
