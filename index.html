@@ -38,34 +38,34 @@ canvas {
 <script src="nodes.js"></script>
 <script>
 window.onload = function () {
-  function Config() {
-    this.nodeColor = '#d8f02a';
-    this.nodeOpacity = 1;
-    this.nodeFade = 500;
-    this.nodeMinRadius = 2;
-    this.nodeMaxRadius = 2;
-    this.nodeMinVelocity = 0.15; // per frame, not time based!
-    this.nodeMaxVelocity = 0.15; // per frame, not time based!
+  var config = {
+    nodeColor: '#d8f02a',
+    nodeOpacity: 1,
+    nodeFade: 500,
+    nodeMinRadius: 2,
+    nodeMaxRadius: 2,
+    nodeMinVelocity: 0.15, // per frame, not time based!
+    nodeMaxVelocity: 0.15, // per frame, not time based!
 
-    this.wavesEnabled = true;
-    this.waveColor = '#fff';
-    this.waveOpacity = 1;
-    this.waveMinWait = 0;
-    this.waveMaxWait = 40000;
-    this.waveDuration = 2500;
-    this.waveMaxDistance = 30;
-    this.waveMinCount = 1;
-    this.waveMaxCount = 3;
+    wavesEnabled: true,
+    waveColor: '#fff',
+    waveOpacity: 1,
+    waveMinWait: 0,
+    waveMaxWait: 40000,
+    waveDuration: 2500,
+    waveMaxDistance: 30,
+    waveMinCount: 1,
+    waveMaxCount: 3,
 
-    this.connsEnabled = true;
-    this.connColor = '#fff';
-    this.connOpacity = 0.19;
-    this.connFade = 4000;
-    this.connMinDistance = 0;
-    this.connMaxDistance = 200;
-    this.connMaxPerNode = 5;
+    connsEnabled: true,
+    connColor: '#fff',
+    connOpacity: 0.19,
+    connFade: 4000,
+    connMinDistance: 0,
+    connMaxDistance: 200,
+    connMaxPerNode: 5,
 
-    this.spawnSteps = [{
+    spawnSteps: [{
       d: 3000,
       r: 0.25,
       n: 10
@@ -77,10 +77,9 @@ window.onload = function () {
       d: 1000,
       r: 1,
       n: 100
-    }];
-  }
+    }]
+  };
 
-  var config = new Config();
   var canvas = document.getElementsByTagName('canvas')[0];
   var nodes = new Nodes(canvas, config);
   var gui = new dat.GUI({
