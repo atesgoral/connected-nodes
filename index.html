@@ -1,129 +1,126 @@
-<style>
-html, body {
-  height: 100%;
-}
-body {
-  margin: 0;
-  padding: 0;
-  background: -webkit-gradient(linear, right top, left bottom, from(#3bbdec), to(#00aae7));
-}
-canvas {
-  width: 100%;
-  height: 100%;
-}
-#text {
-  position: absolute;
-  top: 50%;
-  margin-top: -24pt;
-  width: 100%;
-  text-align: center;
-  color: #fff;
-  font-family: Helvetica, sans-serif;
-  font-size: 48pt;
-}
-#overlay {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  left: 0;
-  background: url(Header.png) 50% 50% no-repeat;
-  background-size: 40%;
-}
-</style>
-<canvas>
-</canvas>
-<div id="overlay"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5.1/dat.gui.min.js"></script>
-<script src="nodes.js"></script>
-<script>
-window.onload = function () {
-  var config = {
-    node: {
-      color: '#d8f02a',
-      opacity: 1,
-      fade: 500,
-      minRadius: 2,
-      maxRadius: 2,
-      minVelocity: 0.15, // per frame, not time based!
-      maxVelocity: 0.15 // per frame, not time based!
-    },
-    wave: {
-      isEnabled: true,
-      color: '#fff',
-      opacity: 1,
-      minWait: 0,
-      maxWait: 40000,
-      duration: 2500,
-      maxDistance: 30,
-      minCount: 1,
-      maxCount: 3
-    },
-    conn: {
-      isEnabled: true,
-      color: '#fff',
-      opacity: 0.19,
-      fade: 4000,
-      minDistance: 0,
-      maxDistance: 200,
-      maxPerNode: 5
-    },
-    spawnSteps: [{
-      d: 3000,
-      r: 0.25,
-      n: 10
-    }, {
-      d: 1000,
-      r: .5,
-      n: 50
-    }, {
-      d: 1000,
-      r: 1,
-      n: 100
-    }]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    html, body {
+      height: 100%;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background: -webkit-gradient(linear, right top, left bottom, from(#3bbdec), to(#00aae7));
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
+    #overlay {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      background: url(Header.png) 50% 50% no-repeat;
+      background-size: 40%;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5.1/dat.gui.min.js"></script>
+  <script src="nodes.js"></script>
+  <script>
+  window.onload = function () {
+    var config = {
+      node: {
+        color: '#d8f02a',
+        opacity: 1,
+        fade: 500,
+        minRadius: 2,
+        maxRadius: 2,
+        minVelocity: 0.15, // per frame, not time based!
+        maxVelocity: 0.15 // per frame, not time based!
+      },
+      wave: {
+        isEnabled: true,
+        color: '#fff',
+        opacity: 1,
+        minWait: 0,
+        maxWait: 40000,
+        duration: 2500,
+        maxDistance: 30,
+        minCount: 1,
+        maxCount: 3
+      },
+      conn: {
+        isEnabled: true,
+        color: '#fff',
+        opacity: 0.19,
+        fade: 4000,
+        minDistance: 0,
+        maxDistance: 200,
+        maxPerNode: 5
+      },
+      spawnSteps: [{
+        d: 3000,
+        r: 0.25,
+        n: 10
+      }, {
+        d: 1000,
+        r: .5,
+        n: 50
+      }, {
+        d: 1000,
+        r: 1,
+        n: 100
+      }]
+    };
+
+    var canvas = document.getElementsByTagName('canvas')[0];
+    var nodes = new Nodes(canvas, config);
+    var gui = new dat.GUI({
+      width: 300
+    });
+
+    gui.close();
+    gui.remember(config);
+
+    gui.add(nodes, 'restart');
+
+    var nodeProps = gui.addFolder('Nodes');
+    // nodeProps.open();
+    nodeProps.addColor(config.node, 'color');
+    nodeProps.add(config.node, 'opacity', 0, 1);
+    nodeProps.add(config.node, 'fade', 0, 10000).step(250);
+    nodeProps.add(config.node, 'minRadius', 0, 10).step(1);
+    nodeProps.add(config.node, 'maxRadius', 0, 10).step(1);
+    nodeProps.add(config.node, 'minVelocity', 0, 2);
+    nodeProps.add(config.node, 'maxVelocity', 0, 2);
+
+    var waveProps = gui.addFolder('Waves');
+    // waveProps.open();
+    waveProps.add(config.wave, 'isEnabled');
+    waveProps.addColor(config.wave, 'color');
+    waveProps.add(config.wave, 'opacity', 0, 1);
+    waveProps.add(config.wave, 'minWait', 0, 60000).step(250);
+    waveProps.add(config.wave, 'maxWait', 0, 60000).step(250);
+    waveProps.add(config.wave, 'duration', 0, 10000).step(250);
+    waveProps.add(config.wave, 'maxDistance', 0, 200).step(1);
+    waveProps.add(config.wave, 'minCount', 1, 10).step(1);
+    waveProps.add(config.wave, 'maxCount', 1, 10).step(1);
+
+    var connProps = gui.addFolder('Connections');
+    // connProps.open();
+    connProps.add(config.conn, 'isEnabled');
+    connProps.addColor(config.conn, 'color');
+    connProps.add(config.conn, 'opacity', 0, 1);
+    connProps.add(config.conn, 'fade', 0, 10000).step(250);
+    connProps.add(config.conn, 'minDistance', 0, 2000).step(1);
+    connProps.add(config.conn, 'maxDistance', 0, 2000).step(1);
+    connProps.add(config.conn, 'maxPerNode', 0, 100).step(1);
   };
-
-  var canvas = document.getElementsByTagName('canvas')[0];
-  var nodes = new Nodes(canvas, config);
-  var gui = new dat.GUI({
-    width: 300
-  });
-
-  gui.close();
-  gui.remember(config);
-
-  gui.add(nodes, 'restart');
-
-  var nodeProps = gui.addFolder('Nodes');
-  // nodeProps.open();
-  nodeProps.addColor(config.node, 'color');
-  nodeProps.add(config.node, 'opacity', 0, 1);
-  nodeProps.add(config.node, 'fade', 0, 10000).step(250);
-  nodeProps.add(config.node, 'minRadius', 0, 10).step(1);
-  nodeProps.add(config.node, 'maxRadius', 0, 10).step(1);
-  nodeProps.add(config.node, 'minVelocity', 0, 2);
-  nodeProps.add(config.node, 'maxVelocity', 0, 2);
-
-  var waveProps = gui.addFolder('Waves');
-  // waveProps.open();
-  waveProps.add(config.wave, 'isEnabled');
-  waveProps.addColor(config.wave, 'color');
-  waveProps.add(config.wave, 'opacity', 0, 1);
-  waveProps.add(config.wave, 'minWait', 0, 60000).step(250);
-  waveProps.add(config.wave, 'maxWait', 0, 60000).step(250);
-  waveProps.add(config.wave, 'duration', 0, 10000).step(250);
-  waveProps.add(config.wave, 'maxDistance', 0, 200).step(1);
-  waveProps.add(config.wave, 'minCount', 1, 10).step(1);
-  waveProps.add(config.wave, 'maxCount', 1, 10).step(1);
-
-  var connProps = gui.addFolder('Connections');
-  // connProps.open();
-  connProps.add(config.conn, 'isEnabled');
-  connProps.addColor(config.conn, 'color');
-  connProps.add(config.conn, 'opacity', 0, 1);
-  connProps.add(config.conn, 'fade', 0, 10000).step(250);
-  connProps.add(config.conn, 'minDistance', 0, 2000).step(1);
-  connProps.add(config.conn, 'maxDistance', 0, 2000).step(1);
-  connProps.add(config.conn, 'maxPerNode', 0, 100).step(1);
-};
-</script>
+  </script>
+</head>
+<body>
+<canvas></canvas>
+<div id="overlay"></div>
+</body>
+</html>
