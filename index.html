@@ -89,12 +89,13 @@ window.onload = function () {
     width: 300
   });
 
+  gui.close();
   gui.remember(config);
 
   gui.add(nodes, 'restart');
 
   var nodeProps = gui.addFolder('Nodes');
-  nodeProps.open();
+  // nodeProps.open();
   nodeProps.addColor(config.node, 'color');
   nodeProps.add(config.node, 'opacity', 0, 1);
   nodeProps.add(config.node, 'fade', 0, 10000).step(250);
@@ -104,7 +105,7 @@ window.onload = function () {
   nodeProps.add(config.node, 'maxVelocity', 0, 2);
 
   var waveProps = gui.addFolder('Waves');
-  waveProps.open();
+  // waveProps.open();
   waveProps.add(config.wave, 'isEnabled');
   waveProps.addColor(config.wave, 'color');
   waveProps.add(config.wave, 'opacity', 0, 1);
@@ -116,7 +117,7 @@ window.onload = function () {
   waveProps.add(config.wave, 'maxCount', 1, 10).step(1);
 
   var connProps = gui.addFolder('Connections');
-  connProps.open();
+  // connProps.open();
   connProps.add(config.conn, 'isEnabled');
   connProps.addColor(config.conn, 'color');
   connProps.add(config.conn, 'opacity', 0, 1);
