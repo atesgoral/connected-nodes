@@ -39,32 +39,35 @@ canvas {
 <script>
 window.onload = function () {
   var config = {
-    nodeColor: '#d8f02a',
-    nodeOpacity: 1,
-    nodeFade: 500,
-    nodeMinRadius: 2,
-    nodeMaxRadius: 2,
-    nodeMinVelocity: 0.15, // per frame, not time based!
-    nodeMaxVelocity: 0.15, // per frame, not time based!
-
-    wavesEnabled: true,
-    waveColor: '#fff',
-    waveOpacity: 1,
-    waveMinWait: 0,
-    waveMaxWait: 40000,
-    waveDuration: 2500,
-    waveMaxDistance: 30,
-    waveMinCount: 1,
-    waveMaxCount: 3,
-
-    connsEnabled: true,
-    connColor: '#fff',
-    connOpacity: 0.19,
-    connFade: 4000,
-    connMinDistance: 0,
-    connMaxDistance: 200,
-    connMaxPerNode: 5,
-
+    node: {
+      color: '#d8f02a',
+      opacity: 1,
+      fade: 500,
+      minRadius: 2,
+      maxRadius: 2,
+      minVelocity: 0.15, // per frame, not time based!
+      maxVelocity: 0.15 // per frame, not time based!
+    },
+    wave: {
+      isEnabled: true,
+      color: '#fff',
+      opacity: 1,
+      minWait: 0,
+      maxWait: 40000,
+      duration: 2500,
+      maxDistance: 30,
+      minCount: 1,
+      maxCount: 3
+    },
+    conn: {
+      isEnabled: true,
+      color: '#fff',
+      opacity: 0.19,
+      fade: 4000,
+      minDistance: 0,
+      maxDistance: 200,
+      maxPerNode: 5
+    },
     spawnSteps: [{
       d: 3000,
       r: 0.25,
@@ -92,36 +95,34 @@ window.onload = function () {
 
   var nodeProps = gui.addFolder('Nodes');
   nodeProps.open();
-  nodeProps.addColor(config, 'nodeColor');
-  nodeProps.add(config, 'nodeOpacity', 0, 1);
-  nodeProps.add(config, 'nodeFade', 0, 10000).step(250);
-  nodeProps.add(config, 'nodeMinRadius', 0, 10).step(1);
-  nodeProps.add(config, 'nodeMaxRadius', 0, 10).step(1);
-  nodeProps.add(config, 'nodeMinVelocity', 0, 2);
-  nodeProps.add(config, 'nodeMaxVelocity', 0, 2);
+  nodeProps.addColor(config.node, 'color');
+  nodeProps.add(config.node, 'opacity', 0, 1);
+  nodeProps.add(config.node, 'fade', 0, 10000).step(250);
+  nodeProps.add(config.node, 'minRadius', 0, 10).step(1);
+  nodeProps.add(config.node, 'maxRadius', 0, 10).step(1);
+  nodeProps.add(config.node, 'minVelocity', 0, 2);
+  nodeProps.add(config.node, 'maxVelocity', 0, 2);
 
   var waveProps = gui.addFolder('Waves');
   waveProps.open();
-  waveProps.add(config, 'wavesEnabled');
-  waveProps.addColor(config, 'waveColor');
-  waveProps.add(config, 'waveOpacity', 0, 1);
-  waveProps.add(config, 'waveMinWait', 0, 60000).step(250);
-  waveProps.add(config, 'waveMaxWait', 0, 60000).step(250);
-  waveProps.add(config, 'waveDuration', 0, 10000).step(250);
-  waveProps.add(config, 'waveMaxDistance', 0, 200).step(1);
-  waveProps.add(config, 'waveMinCount', 1, 10).step(1);
-  waveProps.add(config, 'waveMaxCount', 1, 10).step(1);
+  waveProps.add(config.wave, 'isEnabled');
+  waveProps.addColor(config.wave, 'color');
+  waveProps.add(config.wave, 'opacity', 0, 1);
+  waveProps.add(config.wave, 'minWait', 0, 60000).step(250);
+  waveProps.add(config.wave, 'maxWait', 0, 60000).step(250);
+  waveProps.add(config.wave, 'duration', 0, 10000).step(250);
+  waveProps.add(config.wave, 'maxDistance', 0, 200).step(1);
+  waveProps.add(config.wave, 'minCount', 1, 10).step(1);
+  waveProps.add(config.wave, 'maxCount', 1, 10).step(1);
 
   var connProps = gui.addFolder('Connections');
   connProps.open();
-  connProps.add(config, 'connsEnabled');
-  connProps.addColor(config, 'connColor');
-  connProps.add(config, 'connOpacity', 0, 1);
-  connProps.add(config, 'connFade', 0, 10000).step(250);
-  connProps.add(config, 'connMinDistance', 0, 2000).step(1);
-  connProps.add(config, 'connMaxDistance', 0, 2000).step(1);
-  connProps.add(config, 'connMaxPerNode', 0, 100).step(1);
-
-  document.getElementsByClassName('save-row')[0].appendChild(restartButton);
+  connProps.add(config.conn, 'isEnabled');
+  connProps.addColor(config.conn, 'color');
+  connProps.add(config.conn, 'opacity', 0, 1);
+  connProps.add(config.conn, 'fade', 0, 10000).step(250);
+  connProps.add(config.conn, 'minDistance', 0, 2000).step(1);
+  connProps.add(config.conn, 'maxDistance', 0, 2000).step(1);
+  connProps.add(config.conn, 'maxPerNode', 0, 100).step(1);
 };
 </script>

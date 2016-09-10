@@ -23,20 +23,20 @@ function Nodes(canvas, config) {
   function process() {
     var now = Date.now();
 
-    if (config.connsEnabled) {
+    if (config.conn.isEnabled) {
       for (var cid in connections) {
         var connection = connections[cid];
         var elapsed = now - connection.t;
 
         switch (connection.state) {
         case 'CONNECTING':
-          if (elapsed >= config.connFade) {
+          if (elapsed >= config.conn.fade) {
             connection.state = 'CONNECTED';
             connection.t = now;
           }
           break;
         case 'DISCONNECTING':
-          if (elapsed >= config.connFade) {
+          if (elapsed >= config.conn.fade) {
             connection.node1.connections--;
             connection.node2.connections--;
             delete connections[cid];
@@ -50,7 +50,7 @@ function Nodes(canvas, config) {
 
     for (var idx = 0; idx < nodes.length; idx++) {
       var node = nodes[idx];
-      var velocity = (config.nodeMaxVelocity - config.nodeMinVelocity) * node.v + config.nodeMinVelocity;
+      var velocity = (config.node.maxVelocity - config.node.minVelocity) * node.v + config.node.minVelocity;
 
       node.x += Math.cos(node.a) * velocity;
       node.y += Math.sin(node.a) * velocity;
@@ -73,20 +73,20 @@ function Nodes(canvas, config) {
         }
         continue;
       case 'SPAWNING':
-        if (elapsed >= config.nodeFade) {
+        if (elapsed >= config.node.fade) {
           node.state = 'SILENT';
           node.silence = Math.random();
           node.t = now;
         }
         continue;
       case 'SILENT':
-        if (config.wavesEnabled && elapsed >= (config.waveMaxWait - config.waveMinWait) * node.silence + config.waveMinWait) {
-          var waveCount = Math.floor((config.waveMaxCount - config.waveMinCount) * Math.random()) + config.waveMinCount;
+        if (config.wave.isEnabled && elapsed >= (config.wave.maxWait - config.wave.minWait) * node.silence + config.wave.minWait) {
+          var waveCount = Math.floor((config.wave.maxCount - config.wave.minCount) * Math.random()) + config.wave.minCount;
 
           for (var i = 0; i < waveCount; i++) {
             node.waves.push({
               t: now,
-              delay: config.waveDuration / 3 * i
+              delay: config.wave.duration / 3 * i
             });
           }
 
@@ -96,7 +96,7 @@ function Nodes(canvas, config) {
         break;
       case 'EMITTING':
         node.waves = node.waves.filter(function (wave) {
-          return now - wave.delay - wave.t <= config.waveDuration
+          return now - wave.delay - wave.t <= config.wave.duration
         });
 
         if (!node.waves.length) {
@@ -107,7 +107,7 @@ function Nodes(canvas, config) {
         break;
       }
 
-      if (!config.connsEnabled) {
+      if (!config.conn.isEnabled) {
         node.connections = 0;
         continue;
       }
@@ -125,11 +125,11 @@ function Nodes(canvas, config) {
         var d = Math.sqrt(dx * dx + dy * dy);
         var connection = connections[cid];
 
-        if (d <= config.connMaxDistance && d >= config.connMinDistance) {
+        if (d <= config.conn.maxDistance && d >= config.conn.minDistance) {
           if (
             !connection
-            && node.connections < config.connMaxPerNode
-            && otherNode.connections < config.connMaxPerNode
+            && node.connections < config.conn.maxPerNode
+            && otherNode.connections < config.conn.maxPerNode
           ) {
             connections[cid] = {
               state: 'CONNECTING',
@@ -160,16 +160,16 @@ function Nodes(canvas, config) {
 
       switch (connection.state) {
       case 'CONNECTING':
-        ctx.globalAlpha = Math.min(1, (now - connection.t) / config.connFade) * config.connOpacity;
+        ctx.globalAlpha = Math.min(1, (now - connection.t) / config.conn.fade) * config.conn.opacity;
         break;
       case 'DISCONNECTING':
-        ctx.globalAlpha = (1 - Math.min(1, (now - connection.t) / config.connFade)) * config.connOpacity;
+        ctx.globalAlpha = (1 - Math.min(1, (now - connection.t) / config.conn.fade)) * config.conn.opacity;
         break;
       default:
-        ctx.globalAlpha = config.connOpacity;
+        ctx.globalAlpha = config.conn.opacity;
       }
 
-      ctx.strokeStyle = config.connColor;
+      ctx.strokeStyle = config.conn.color;
       ctx.beginPath();
       ctx.moveTo(origin.x + connection.node1.x, origin.y + connection.node1.y);
       ctx.lineTo(origin.x + connection.node2.x, origin.y + connection.node2.y);
@@ -186,14 +186,14 @@ function Nodes(canvas, config) {
       }
 
       if (node.state === 'SPAWNING') {
-        ctx.globalAlpha = Math.max(0, now - node.t) / config.nodeFade * config.nodeOpacity;
+        ctx.globalAlpha = Math.max(0, now - node.t) / config.node.fade * config.node.opacity;
       } else {
-        ctx.globalAlpha = config.nodeOpacity;
+        ctx.globalAlpha = config.node.opacity;
       }
 
-      var nodeRadius = (config.nodeMaxRadius - config.nodeMinRadius) * node.r + config.nodeMinRadius;
+      var nodeRadius = (config.node.maxRadius - config.node.minRadius) * node.r + config.node.minRadius;
 
-      ctx.fillStyle = config.nodeColor;
+      ctx.fillStyle = config.node.color;
       ctx.beginPath();
       ctx.arc(
         origin.x + node.x,
@@ -214,15 +214,15 @@ function Nodes(canvas, config) {
           continue;
         }
 
-        var n = Math.max(0, config.waveDuration - elapsed) / config.waveDuration;
+        var n = Math.max(0, config.wave.duration - elapsed) / config.wave.duration;
 
-        ctx.globalAlpha = n * config.waveOpacity;
-        ctx.strokeStyle = config.waveColor;
+        ctx.globalAlpha = n * config.wave.opacity;
+        ctx.strokeStyle = config.wave.color;
         ctx.beginPath();
         ctx.arc(
           origin.x + node.x,
           origin.y + node.y,
-          nodeRadius + (1 - n) * config.waveMaxDistance,
+          nodeRadius + (1 - n) * config.wave.maxDistance,
           0,
           Math.PI * 2
         );
