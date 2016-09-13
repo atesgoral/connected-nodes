@@ -41,21 +41,21 @@ function Nodes(canvas, config) {
 
     if (config.conn.isEnabled) {
       for (var cid in scene.connectors) {
-        var connection = scene.connectors[cid];
-        var elapsed = now - connection.t;
+        var connector = scene.connectors[cid];
+        var elapsed = now - connector.t;
 
-        switch (connection.state) {
+        switch (connector.state) {
         case 'CONNECTING':
           if (elapsed >= config.conn.fade) {
-            connection.state = 'CONNECTED';
-            connection.t = now;
+            connector.state = 'CONNECTED';
+            connector.t = now;
           }
           break;
         case 'DISCONNECTING':
           if (elapsed >= config.conn.fade) {
-            connection.node1.connections--;
-            connection.node2.connections--;
-            delete connections[cid];
+            connector.node1.connections--;
+            connector.node2.connections--;
+            delete scene.connectors[cid];
           }
           break;
         }
@@ -141,7 +141,7 @@ function Nodes(canvas, config) {
         var d = Math.sqrt(dx * dx + dy * dy);
         var connector = scene.connectors[cid];
 
-        if (d <= config.conn.maxDistance && d >= config.conn.minDistance) {
+        if (d <= config.conn.maxDistance / 400 && d >= config.conn.minDistance / 400) {
           if (
             !connector
             && node.connections < config.conn.maxPerNode
@@ -259,9 +259,8 @@ function Nodes(canvas, config) {
   }
 
   function spawnNode(spawnMinRadius, spawnMaxRadius, maxHideDuration) {
-    //var c = (spawnMaxRadius - spawnMinRadius) * Math.random() + spawnMinRadius;
     var node = {
-      x: Math.random() * scene.w,
+      x: (((spawnMaxRadius - spawnMinRadius) * Math.random() + spawnMinRadius) / 2 * (Math.random() < 0.5 ? -1 : 1) + 0.5) * scene.w,
       y: Math.random() * scene.h,
       a: 2 * Math.PI * Math.random(),
       v: Math.random(),
