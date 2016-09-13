@@ -13,6 +13,11 @@ function Nodes(canvas, config) {
     y: height / 2
   };
 
+  var world = {
+    w: width,
+    h: height
+  };
+
   var ctx = canvas.getContext('2d');
 
   ctx.scale(2, 2);
@@ -55,11 +60,11 @@ function Nodes(canvas, config) {
       node.x += Math.cos(node.a) * velocity;
       node.y += Math.sin(node.a) * velocity;
 
-      if (node.x < -origin.x || node.x > origin.x) {
+      if (node.x < -world.w / 2 || node.x > world.w / 2) {
         node.a = Math.PI - node.a;
       }
 
-      if (node.y < -origin.y || node.y > origin.y) {
+      if (node.y < -world.h / 2 || node.y > world.h / 2) {
         node.a = 2 * Math.PI - node.a;
       }
 
@@ -246,8 +251,8 @@ function Nodes(canvas, config) {
     var a = Math.random() * Math.PI * 2;
     var r = (spawnMaxRadius - spawnMinRadius) * Math.random() + spawnMinRadius;
     var newNode = {
-      x: Math.cos(a) * r * origin.x,
-      y: Math.sin(a) * r * origin.y,
+      x: Math.cos(a) * r * world.w / 2,
+      y: Math.sin(a) * r * world.h / 2,
       a: 2 * Math.PI * Math.random(),
       v: Math.random(),
       r: Math.random(),
