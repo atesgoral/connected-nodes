@@ -12,10 +12,6 @@ function Nodes(canvas, config) {
     x: width / 2,
     y: height / 2
   };
-  var offset = {
-    x: 0,
-    y: height / 2
-  };
 
   var ctx = canvas.getContext('2d');
 
@@ -175,8 +171,8 @@ function Nodes(canvas, config) {
 
       ctx.strokeStyle = config.conn.color;
       ctx.beginPath();
-      ctx.moveTo(origin.x + offset.x + connection.node1.x, origin.y + offset.y + connection.node1.y);
-      ctx.lineTo(origin.x + offset.x + connection.node2.x, origin.y + offset.y + connection.node2.y);
+      ctx.moveTo(origin.x + connection.node1.x, origin.y + connection.node1.y);
+      ctx.lineTo(origin.x + connection.node2.x, origin.y + connection.node2.y);
       ctx.stroke();
 
       ctx.globalAlpha = 1;
@@ -200,8 +196,8 @@ function Nodes(canvas, config) {
       ctx.fillStyle = config.node.color;
       ctx.beginPath();
       ctx.arc(
-        origin.x + offset.x + node.x,
-        origin.y + offset.y + node.y,
+        origin.x + node.x,
+        origin.y + node.y,
         nodeRadius,
         0,
         Math.PI * 2
@@ -224,8 +220,8 @@ function Nodes(canvas, config) {
         ctx.strokeStyle = config.wave.color;
         ctx.beginPath();
         ctx.arc(
-          origin.x + offset.x + node.x,
-          origin.y + offset.y + node.y,
+          origin.x + node.x,
+          origin.y + node.y,
           nodeRadius + (1 - n) * config.wave.maxDistance,
           0,
           Math.PI * 2
