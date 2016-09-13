@@ -2,11 +2,29 @@ function Nodes(canvas, config) {
   var width = canvas.offsetWidth;
   var height = canvas.offsetHeight;
 
-  canvas.width = width * 2;
-  canvas.height = height * 2;
+  canvas.width = width;
+  canvas.height = height;
 
-  canvas.style.width = width + 'px';
-  canvas.style.height = height + 'px';
+  // canvas.width = width * 2;
+  // canvas.height = height * 2;
+
+  // canvas.style.width = width + 'px';
+  // canvas.style.height = height + 'px';
+
+  // ctx.scale(2, 2);
+
+  var ctx = canvas.getContext('2d');
+
+  ctx.scale(canvas.height, canvas.height);
+
+  ctx.lineWidth = 1 / 400;
+
+  var scene = {
+    w: width / height,
+    h: 1,
+    nodes: [],
+    connectors: {}
+  };
 
   var origin = {
     x: width / 2,
@@ -18,19 +36,12 @@ function Nodes(canvas, config) {
     h: height
   };
 
-  var ctx = canvas.getContext('2d');
-
-  ctx.scale(2, 2);
-
-  var nodes;
-  var connections;
-
-  function process() {
+  function progress(scene, config) {
     var now = Date.now();
 
     if (config.conn.isEnabled) {
-      for (var cid in connections) {
-        var connection = connections[cid];
+      for (var cid in scene.connectors) {
+        var connection = scene.connectors[cid];
         var elapsed = now - connection.t;
 
         switch (connection.state) {
@@ -50,21 +61,21 @@ function Nodes(canvas, config) {
         }
       }
     } else {
-      connections = {};
+      scene.connectors = {};
     }
 
-    for (var idx = 0; idx < nodes.length; idx++) {
-      var node = nodes[idx];
-      var velocity = (config.node.maxVelocity - config.node.minVelocity) * node.v + config.node.minVelocity;
+    for (var idx = 0; idx < scene.nodes.length; idx++) {
+      var node = scene.nodes[idx];
+      var velocity = ((config.node.maxVelocity - config.node.minVelocity) * node.v + config.node.minVelocity) / 400;
 
       node.x += Math.cos(node.a) * velocity;
       node.y += Math.sin(node.a) * velocity;
 
-      if (node.x < -world.w / 2 || node.x > world.w / 2) {
+      if (node.x < 0 || node.x >= scene.w) {
         node.a = Math.PI - node.a;
       }
 
-      if (node.y < -world.h / 2 || node.y > world.h / 2) {
+      if (node.y < 0 || node.y >= scene.h) {
         node.a = 2 * Math.PI - node.a;
       }
 
@@ -117,8 +128,8 @@ function Nodes(canvas, config) {
         continue;
       }
 
-      for (var otherIdx = idx + 1; otherIdx < nodes.length; otherIdx++) {
-        var otherNode = nodes[otherIdx];
+      for (var otherIdx = idx + 1; otherIdx < scene.nodes.length; otherIdx++) {
+        var otherNode = scene.nodes[otherIdx];
 
         if (otherNode.state === 'HIDING' || otherNode.state === 'SPAWNING') {
           continue;
@@ -128,15 +139,15 @@ function Nodes(canvas, config) {
         var dx = node.x - otherNode.x;
         var dy = node.y - otherNode.y;
         var d = Math.sqrt(dx * dx + dy * dy);
-        var connection = connections[cid];
+        var connector = scene.connectors[cid];
 
         if (d <= config.conn.maxDistance && d >= config.conn.minDistance) {
           if (
-            !connection
+            !connector
             && node.connections < config.conn.maxPerNode
             && otherNode.connections < config.conn.maxPerNode
           ) {
-            connections[cid] = {
+            scene.connectors[cid] = {
               state: 'CONNECTING',
               t: now,
               node1: node,
@@ -146,22 +157,22 @@ function Nodes(canvas, config) {
             otherNode.connections++;
           }
         } else {
-          if (connection && connection.state === 'CONNECTED') {
-            connection.state = 'DISCONNECTING';
-            connection.t = now;
+          if (connector && connector.state === 'CONNECTED') {
+            connector.state = 'DISCONNECTING';
+            connector.t = now;
           }
         }
       }
     }
   }
 
-  function paint() {
+  function render(ctx, scene, config) {
     var now = Date.now();
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, scene.w, scene.h);
 
-    for (var cid in connections) {
-      var connection = connections[cid];
+    for (var cid in scene.connectors) {
+      var connection = scene.connectors[cid];
 
       switch (connection.state) {
       case 'CONNECTING':
@@ -176,15 +187,15 @@ function Nodes(canvas, config) {
 
       ctx.strokeStyle = config.conn.color;
       ctx.beginPath();
-      ctx.moveTo(origin.x + connection.node1.x, origin.y + connection.node1.y);
-      ctx.lineTo(origin.x + connection.node2.x, origin.y + connection.node2.y);
+      ctx.moveTo(connection.node1.x, connection.node1.y);
+      ctx.lineTo(connection.node2.x, connection.node2.y);
       ctx.stroke();
 
       ctx.globalAlpha = 1;
     };
 
-    for (var idx = 0; idx < nodes.length; idx++) {
-      var node = nodes[idx];
+    for (var idx = 0; idx < scene.nodes.length; idx++) {
+      var node = scene.nodes[idx];
 
       if (node.state === 'HIDING') {
         continue;
@@ -196,13 +207,13 @@ function Nodes(canvas, config) {
         ctx.globalAlpha = config.node.opacity;
       }
 
-      var nodeRadius = (config.node.maxRadius - config.node.minRadius) * node.r + config.node.minRadius;
+      var nodeRadius = ((config.node.maxRadius - config.node.minRadius) * node.r + config.node.minRadius) / 400;
 
       ctx.fillStyle = config.node.color;
       ctx.beginPath();
       ctx.arc(
-        origin.x + node.x,
-        origin.y + node.y,
+        node.x,
+        node.y,
         nodeRadius,
         0,
         Math.PI * 2
@@ -225,9 +236,9 @@ function Nodes(canvas, config) {
         ctx.strokeStyle = config.wave.color;
         ctx.beginPath();
         ctx.arc(
-          origin.x + node.x,
-          origin.y + node.y,
-          nodeRadius + (1 - n) * config.wave.maxDistance,
+          node.x,
+          node.y,
+          nodeRadius + (1 - n) * config.wave.maxDistance / 400,
           0,
           Math.PI * 2
         );
@@ -242,17 +253,16 @@ function Nodes(canvas, config) {
   var tickTimeout;
 
   function tick() {
-    paint();
-    process();
+    render(ctx, scene, config);
+    progress(scene, config);
     tickTimeout = setTimeout(tick, 1000 / 25);
   }
 
   function spawnNode(spawnMinRadius, spawnMaxRadius, maxHideDuration) {
-    var a = Math.random() * Math.PI * 2;
-    var r = (spawnMaxRadius - spawnMinRadius) * Math.random() + spawnMinRadius;
-    var newNode = {
-      x: Math.cos(a) * r * world.w / 2,
-      y: Math.sin(a) * r * world.h / 2,
+    //var c = (spawnMaxRadius - spawnMinRadius) * Math.random() + spawnMinRadius;
+    var node = {
+      x: Math.random() * scene.w,
+      y: Math.random() * scene.h,
       a: 2 * Math.PI * Math.random(),
       v: Math.random(),
       r: Math.random(),
@@ -263,7 +273,7 @@ function Nodes(canvas, config) {
       connections: 0
     };
 
-    nodes.push(newNode);
+    scene.nodes.push(node);
   }
 
   var spawnSteps;
@@ -288,9 +298,6 @@ function Nodes(canvas, config) {
     spawnSteps = config.spawnSteps.slice(0);
     prevMinRadius = 0;
 
-    nodes = [];
-    connections = {};
-
     spawnNodes();
     tick();
   }
@@ -298,6 +305,10 @@ function Nodes(canvas, config) {
   this.restart = function () {
     clearTimeout(tickTimeout);
     clearTimeout(spawnTimeout);
+
+    scene.nodes = [];
+    scene.connectors = {};
+
     start();
   }
 
