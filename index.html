@@ -15,10 +15,17 @@
       position: absolute;
       width: 1440px;
       height: 500px;
+      margin-left: -720px;
       bottom: -160px;
       left: 50%;
-      margin-left: -720px;
-      /*border: 1px solid black;*/
+    }
+    @media (max-width: 720px) {
+      .nodes {
+        width: 720px;
+        height: 250px;
+        margin-left: -360px;
+        bottom: -80px;
+      }
     }
     .nodes canvas {
       position: absolute;
