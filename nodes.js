@@ -24,25 +24,24 @@ function Nodes(canvas, config) {
     connectors: {}
   };
 
-  var scale;
+  var configUnits;
+
+  var pixelRatio = 2; // @todo measure actual ratio
 
   function resizeCanvas() {
-    var width = canvas.offsetWidth;
-    var height = canvas.offsetHeight;
+    var width = canvas.parentNode.offsetWidth;
+    var height = canvas.parentNode.offsetHeight;
 
-    // canvas.width = width * 2;
-    // canvas.height = height * 2;
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width = width * pixelRatio;
+    canvas.height = height * pixelRatio;
 
-    // canvas.style.width = width + 'px';
-    // canvas.style.height = height + 'px';
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
 
-    scale = 500; // @todo based on height
+    configUnits = height / config.scale;
 
-    // ctx.scale(height * 2, height * 2);
-    ctx.scale(height, height);
-    ctx.lineWidth = 1 / scale;
+    ctx.scale(height * pixelRatio, height * pixelRatio);
+    ctx.lineWidth = 1 / configUnits;
 
     scene.w = width / height;
     scene.h = 1;
@@ -90,8 +89,8 @@ function Nodes(canvas, config) {
 
     for (var idx = 0; idx < scene.nodes.length; idx++) {
       var node = scene.nodes[idx];
-      var velocity = ((config.node.maxVelocity - config.node.minVelocity) * node.v + config.node.minVelocity) / scale;
-      var nodeRadius = ((config.node.maxRadius - config.node.minRadius) * node.r + config.node.minRadius) / scale;
+      var velocity = ((config.node.maxVelocity - config.node.minVelocity) * node.v + config.node.minVelocity) / configUnits;
+      var nodeRadius = ((config.node.maxRadius - config.node.minRadius) * node.r + config.node.minRadius) / configUnits;
 
       node.x += Math.cos(node.a) * velocity;
       node.y += Math.sin(node.a) * velocity;
@@ -166,7 +165,7 @@ function Nodes(canvas, config) {
         var d = Math.sqrt(dx * dx + dy * dy);
         var connector = scene.connectors[cid];
 
-        if (d <= config.conn.maxDistance / scale && d >= config.conn.minDistance / scale) {
+        if (d <= config.conn.maxDistance / configUnits && d >= config.conn.minDistance / configUnits) {
           if (
             !connector
             && node.connections < config.conn.maxPerNode
@@ -232,7 +231,7 @@ function Nodes(canvas, config) {
         ctx.globalAlpha = config.node.opacity;
       }
 
-      var nodeRadius = ((config.node.maxRadius - config.node.minRadius) * node.r + config.node.minRadius) / scale;
+      var nodeRadius = ((config.node.maxRadius - config.node.minRadius) * node.r + config.node.minRadius) / configUnits;
 
       ctx.fillStyle = config.node.color;
       ctx.beginPath();
@@ -263,7 +262,7 @@ function Nodes(canvas, config) {
         ctx.arc(
           node.x,
           node.y,
-          nodeRadius + (1 - n) * config.wave.maxDistance / scale,
+          nodeRadius + (1 - n) * config.wave.maxDistance / configUnits,
           0,
           Math.PI * 2
         );
@@ -285,7 +284,7 @@ function Nodes(canvas, config) {
 
   function spawnNode(spawnMinRadius, spawnMaxRadius, maxHideDuration) {
     var r = Math.random();
-    var nodeRadius = ((config.node.maxRadius - config.node.minRadius) * r + config.node.minRadius) / scale;
+    var nodeRadius = ((config.node.maxRadius - config.node.minRadius) * r + config.node.minRadius) / configUnits;
 
     var node = {
       x: (((spawnMaxRadius - spawnMinRadius) * Math.random() + spawnMinRadius) / 2 * (Math.random() < 0.5 ? -1 : 1) + 0.5) * ((scene.w - nodeRadius * 2) + nodeRadius),

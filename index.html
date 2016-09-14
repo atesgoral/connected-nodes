@@ -11,7 +11,7 @@
       padding: 0;
       background: -webkit-gradient(linear, right top, left bottom, from(#3bbdec), to(#00aae7));
     }
-    canvas {
+    .nodes {
       position: absolute;
       width: 1440px;
       height: 500px;
@@ -20,7 +20,10 @@
       margin-left: -720px;
       /*border: 1px solid black;*/
     }
-    canvas.-hidden {
+    .nodes canvas {
+      position: absolute;
+    }
+    .nodes canvas.-hidden {
       display: none;
     }
     #overlay {
@@ -38,6 +41,7 @@
   <script>
   window.onload = function () {
     var config = {
+      scale: 1,
       node: {
         color: '#d8f02a',
         opacity: 1,
@@ -128,7 +132,7 @@
   </script>
 </head>
 <body>
-<canvas></canvas>
+<div class="nodes"><canvas></canvas></div>
 <div id="overlay"></div>
 </body>
 </html>
