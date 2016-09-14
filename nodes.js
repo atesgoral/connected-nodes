@@ -1,27 +1,64 @@
 function Nodes(canvas, config) {
-  var scale = 500;
+  function debounce(fn, begin, end, delay) {
+    let timeout = null;
 
-  var width = canvas.offsetWidth;
-  var height = canvas.offsetHeight;
+    return () => {
+      if (timeout) {
+        window.clearTimeout(timeout);
+      } else {
+        begin();
+      }
 
-  canvas.width = width * 2;
-  canvas.height = height * 2;
-
-  canvas.style.width = width + 'px';
-  canvas.style.height = height + 'px';
+      timeout = window.setTimeout(() => {
+        timeout = null;
+        end();
+        fn();
+      }, delay);
+    };
+  }
 
   var ctx = canvas.getContext('2d');
 
-  ctx.scale(height * 2, height * 2);
-
-  ctx.lineWidth = 1 / scale;
-
   var scene = {
-    w: width / height,
-    h: 1,
     nodes: [],
     connectors: {}
   };
+
+  var scale;
+
+  function resizeCanvas() {
+    var width = canvas.offsetWidth;
+    var height = canvas.offsetHeight;
+
+    // canvas.width = width * 2;
+    // canvas.height = height * 2;
+    canvas.width = width;
+    canvas.height = height;
+
+    // canvas.style.width = width + 'px';
+    // canvas.style.height = height + 'px';
+
+    scale = 500; // @todo based on height
+
+    // ctx.scale(height * 2, height * 2);
+    ctx.scale(height, height);
+    ctx.lineWidth = 1 / scale;
+
+    scene.w = width / height;
+    scene.h = 1;
+  }
+
+  function hideCanvas() {
+    canvas.className = '-hidden';
+  }
+
+  function showCanvas() {
+    canvas.className = '';
+  }
+
+  resizeCanvas();
+
+  window.addEventListener('resize', debounce(resizeCanvas, hideCanvas, showCanvas, 500));
 
   function progress(scene, config) {
     var now = Date.now();
