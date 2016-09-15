@@ -119,32 +119,6 @@ function Nodes(canvas, config) {
           node.t = now;
         }
         continue;
-      case 'SILENT':
-        if (config.wave.isEnabled && elapsed >= (config.wave.maxWait - config.wave.minWait) * node.silence + config.wave.minWait) {
-          var waveCount = Math.floor((config.wave.maxCount - config.wave.minCount) * Math.random()) + config.wave.minCount;
-
-          for (var i = 0; i < waveCount; i++) {
-            node.waves.push({
-              t: now,
-              delay: config.wave.duration / 3 * i
-            });
-          }
-
-          node.state = 'EMITTING';
-          node.t = now;
-        }
-        break;
-      case 'EMITTING':
-        node.waves = node.waves.filter(function (wave) {
-          return now - wave.delay - wave.t <= config.wave.duration
-        });
-
-        if (!node.waves.length) {
-          node.state = 'SILENT';
-          node.silence = Math.random();
-          node.t = now;
-        }
-        break;
       }
 
       if (!config.conn.isEnabled) {
@@ -245,31 +219,6 @@ function Nodes(canvas, config) {
       ctx.fill();
 
       ctx.globalAlpha = 1;
-
-      for (var waveIdx = 0; waveIdx < node.waves.length; waveIdx++) {
-        var wave = node.waves[waveIdx];
-        var elapsed = now - wave.delay - wave.t;
-
-        if (elapsed < 0) {
-          continue;
-        }
-
-        var n = Math.max(0, config.wave.duration - elapsed) / config.wave.duration;
-
-        ctx.globalAlpha = n * config.wave.opacity;
-        ctx.strokeStyle = config.wave.color;
-        ctx.beginPath();
-        ctx.arc(
-          node.x,
-          node.y,
-          nodeRadius + (1 - n) * config.wave.maxDistance / configUnits,
-          0,
-          Math.PI * 2
-        );
-        ctx.stroke();
-      }
-
-      ctx.globalAlpha = 1;
     }
   }
 
@@ -293,7 +242,6 @@ function Nodes(canvas, config) {
       v: Math.random(),
       r: r,
       t: Date.now(),
-      waves: [],
       state: 'HIDING',
       hideDuration: maxHideDuration * Math.random(),
       connections: 0
