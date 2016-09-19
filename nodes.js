@@ -1,15 +1,15 @@
 function Nodes(canvas, config) {
   function debounce(fn, begin, end, delay) {
-    let timeout = null;
+    var timeout = null;
 
-    return () => {
+    return function () {
       if (timeout) {
         window.clearTimeout(timeout);
       } else {
         begin();
       }
 
-      timeout = window.setTimeout(() => {
+      timeout = window.setTimeout(function () {
         timeout = null;
         end();
         fn();
