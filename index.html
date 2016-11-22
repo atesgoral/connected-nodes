@@ -58,6 +58,17 @@
         minVelocity: 0.15, // per frame, not time based!
         maxVelocity: 0.15 // per frame, not time based!
       },
+      wave: {
+        isEnabled: false,
+        color: '#fff',
+        opacity: 1,
+        minWait: 0,
+        maxWait: 40000,
+        duration: 2500,
+        maxDistance: 30,
+        minCount: 1,
+        maxCount: 3
+      },
       conn: {
         isEnabled: true,
         color: '#fff',
@@ -102,6 +113,18 @@
     nodeProps.add(config.node, 'maxRadius', 0, 10).step(1);
     nodeProps.add(config.node, 'minVelocity', 0, 2);
     nodeProps.add(config.node, 'maxVelocity', 0, 2);
+
+    var waveProps = gui.addFolder('Waves');
+    // waveProps.open();
+    waveProps.add(config.wave, 'isEnabled');
+    waveProps.addColor(config.wave, 'color');
+    waveProps.add(config.wave, 'opacity', 0, 1);
+    waveProps.add(config.wave, 'minWait', 0, 60000).step(250);
+    waveProps.add(config.wave, 'maxWait', 0, 60000).step(250);
+    waveProps.add(config.wave, 'duration', 0, 10000).step(250);
+    waveProps.add(config.wave, 'maxDistance', 0, 200).step(1);
+    waveProps.add(config.wave, 'minCount', 1, 10).step(1);
+    waveProps.add(config.wave, 'maxCount', 1, 10).step(1);
 
     var connProps = gui.addFolder('Connections');
     // connProps.open();
