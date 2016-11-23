@@ -31,6 +31,10 @@
   window.onload = function () {
     var config = {
       scale: 1,
+      gradient: {
+        fromColor: '#3bbdec',
+        toColor: '#00aae7'
+      },
       node: {
         color: '#d8f02a',
         opacity: 1,
@@ -75,6 +79,15 @@
       }]
     };
 
+    function updateGradient() {
+      document.body.style.background =
+        'linear-gradient(to bottom, '
+        + config.gradient.fromColor
+        + ', '
+        + config.gradient.toColor
+        + ')';
+    }
+
     var canvas = document.getElementsByTagName('canvas')[0];
     var nodes = new Nodes(canvas, config);
     var gui = new dat.GUI({
@@ -86,8 +99,11 @@
 
     gui.add(nodes, 'restart');
 
+    var gradientProps = gui.addFolder('Gradient');
+    gradientProps.addColor(config.gradient, 'fromColor').onChange(updateGradient);
+    gradientProps.addColor(config.gradient, 'toColor').onChange(updateGradient);
+
     var nodeProps = gui.addFolder('Nodes');
-    // nodeProps.open();
     nodeProps.addColor(config.node, 'color');
     nodeProps.add(config.node, 'opacity', 0, 1);
     nodeProps.add(config.node, 'fade', 0, 10000).step(250);
@@ -97,7 +113,6 @@
     nodeProps.add(config.node, 'maxVelocity', 0, 2);
 
     var waveProps = gui.addFolder('Waves');
-    // waveProps.open();
     waveProps.add(config.wave, 'isEnabled');
     waveProps.addColor(config.wave, 'color');
     waveProps.add(config.wave, 'opacity', 0, 1);
@@ -109,7 +124,6 @@
     waveProps.add(config.wave, 'maxCount', 1, 10).step(1);
 
     var connProps = gui.addFolder('Connections');
-    // connProps.open();
     connProps.add(config.conn, 'isEnabled');
     connProps.addColor(config.conn, 'color');
     connProps.add(config.conn, 'opacity', 0, 1);
